@@ -4,9 +4,13 @@ public class Main {
         Comida comida = factory.criarComida();
         Bebida bebida = factory.criarBebida();
 
+
+
         comida.removeIngrediente("Alface");
         comida.removeIngrediente("Tomate");
         comida.escolheSemSal();
         bebida.escolheSemAcucar();
+
+        
     }
 }
