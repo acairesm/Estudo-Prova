@@ -1,0 +1,317 @@
+//Clase Abstrata
+
+Clase Abstrata: São Clases que não pode ser instanciada diretamente.
+Ela serve como base para outras Clases herdarem.
+
+
+As características principais são estas. Ela não pode ser instanciada,
+então new Forma() dá erro de compilação se Forma for abstrata.
+Ela pode ter métodos abstratos, que são declarados sem corpo,
+e toda subclasse concreta é obrigada a implementá-los.
+Ela também pode ter métodos concretos, com implementação normal,
+que as subclasses herdam. Pode ainda ter atributos, construtore
+e modificadores de acesso, como uma classe comum.
+Por fim, uma classe só pode estender uma classe abstrata,
+porque Java não tem herança múltipla de classes.
+
+public abstract class Forma {
+    protected String nome;
+
+    public Forma(String nome) {
+        this.nome = nome;
+    }
+
+    // método abstrato: sem corpo, subclasse DEVE implementar
+    public abstract double calcularArea();
+
+    // método concreto: já implementado, subclasses herdam
+    public void exibir() {
+        System.out.println(nome + " - área: " + calcularArea());
+    }
+}
+
+public class Circulo extends Forma {
+    private double raio;
+
+    public Circulo(double raio) {
+        super("Círculo");
+        this.raio = raio;
+    }
+
+    @Override
+    public double calcularArea() {
+        return Math.PI * raio * raio;
+    }
+}
+
+//uso
+
+Forma f = new Circulo(2.0);  // OK: variável do tipo abstrato, objeto concreto
+f.exibir();                  // Círculo - área: 12.566...
+// Forma x = new Forma("x"); // ERRO: não pode instanciar classe abstrata
+
+A diferença para interface costuma cair em prova. A classe abstrata pode ter estado 
+(atributos de instância) e construtor, e uma classe herda de apenas uma.
+A interface não tem estado de instância (só constantes) e não tem construtor,
+e uma classe pode implementar várias. Desde o Java 8, 
+interfaces também podem ter métodos default com implementação.
+
+//Clase Abstrata
+
+//Interface
+
+Interface: é um "contrato". Diz O QUE a classe tem que fazer, mas não COMO.
+Todos os métodos são public e abstract por padrão (não precisa escrever).
+Quem implementa usa "implements" e é OBRIGADO a implementar todos os métodos.
+Não dá pra fazer new numa interface, mas dá pra usar ela como TIPO de variável.
+
+public interface iForma {
+    void desenhar();
+}
+
+public class Circulo implements iForma {
+    @Override
+    public void desenhar() {
+        System.out.println("CÍRCULO");
+    }
+}
+
+iForma f = new Circulo();   // OK: variável do tipo interface, objeto concreto
+// iForma x = new iForma(); // ERRO
+
+Palavras-chave:
+- extends    -> classe herda de classe (só UMA) / interface herda de interface
+- implements -> classe implementa interface (pode ser VÁRIAS: implements A, B)
+- @Override  -> indica que está sobrescrevendo/implementando método do pai/interface
+
+//Interface
+
+
+//Factory Method (PADRÃO DE PROJETO - O FOCO DA PROVA)
+
+O que é: padrão de projeto CRIACIONAL (do grupo GoF - Gang of Four).
+Ideia: em vez de o cliente dar "new Circulo()" direto, ele pede o objeto
+para uma FÁBRICA. A fábrica é quem decide qual classe concreta criar.
+
+Definição (GoF): "Define uma interface para criar um objeto, mas deixa as
+subclasses decidirem qual classe instanciar. O Factory Method permite que
+uma classe delegue a instanciação para subclasses."
+
+Problema que resolve: acoplamento. Se o código cliente tem "new Circulo()"
+espalhado por todo lado, pra trocar/adicionar uma forma tem que mexer em
+tudo. Com a fábrica, o cliente só conhece as INTERFACES (iForma, iFabricaForma).
+
+Os 4 PARTICIPANTES (decorar!):
+
+  Papel no padrão        | Nome genérico      | No código do professor
+  -----------------------|--------------------|-------------------------------
+  Produto                | Product            | iForma (interface)
+  Produto Concreto       | ConcreteProduct    | Circulo, Retangulo
+  Criador / Fábrica      | Creator            | iFabricaForma (interface)
+  Criador Concreto       | ConcreteCreator    | FabricaCirculo, FabricaRetangulo
+  (Cliente)              | Client             | desenhista (main)
+
+O "factory method" em si é o método criarForma(): ele RETORNA o tipo
+da interface (iForma), mas cada fábrica concreta devolve um objeto diferente.
+
+--- Código completo do professor ---
+
+// Produto
+public interface iForma {
+    void desenhar();
+}
+
+// Produtos concretos
+public class Circulo implements iForma {
+    @Override
+    public void desenhar() { System.out.println("CÍRCULO"); }
+}
+
+public class Retangulo implements iForma {
+    @Override
+    public void desenhar() { System.out.println("RETANGULO"); }
+}
+
+// Criador (fábrica abstrata / interface)
+public interface iFabricaForma {
+    iForma criarForma();          // <- ESTE é o factory method
+}
+
+// Criadores concretos
+public class FabricaCirculo implements iFabricaForma {
+    @Override
+    public iForma criarForma() { return new Circulo(); }
+}
+
+public class FabricaRetangulo implements iFabricaForma {
+    @Override
+    public iForma criarForma() { return new Retangulo(); }
+}
+
+// Cliente
+public class desenhista {
+    public static void main(String[] args) {
+        iFabricaForma fabricaCirculo   = new FabricaCirculo();
+        iFabricaForma fabricaRetangulo = new FabricaRetangulo();
+
+        iForma circulo = fabricaCirculo.criarForma();
+        circulo.desenhar();       // CÍRCULO
+
+        iForma retangulo = fabricaRetangulo.criarForma();
+        retangulo.desenhar();     // RETANGULO
+    }
+}
+
+Repara: o cliente declara tudo com o tipo da INTERFACE (iFabricaForma, iForma).
+Ele nunca escreve "new Circulo()". Isso é "programar para a interface,
+não para a implementação".
+
+--- Como ADICIONAR uma forma nova (pode cair!) ---
+Ex.: Triangulo. Só CRIA classes novas, não altera nenhuma existente:
+
+public class Triangulo implements iForma {
+    @Override
+    public void desenhar() { System.out.println("TRIANGULO"); }
+}
+
+public class FabricaTriangulo implements iFabricaForma {
+    @Override
+    public iForma criarForma() { return new Triangulo(); }
+}
+
+// no cliente:
+iFabricaForma fabricaTriangulo = new FabricaTriangulo();
+iForma t = fabricaTriangulo.criarForma();
+t.desenhar();   // TRIANGULO
+
+Receita: 1 produto novo = 1 classe produto (implements iForma)
+                        + 1 classe fábrica (implements iFabricaForma).
+
+--- Mesmo padrão com CLASSE ABSTRATA (outra forma de cair) ---
+O Creator também pode ser classe abstrata em vez de interface, e aí ela
+pode ter um método concreto que USA o factory method:
+
+public abstract class FabricaForma {
+    public abstract iForma criarForma();   // factory method
+
+    public void renderizar() {             // método concreto
+        iForma f = criarForma();           // não sabe qual forma vem
+        f.desenhar();
+    }
+}
+
+public class FabricaCirculo extends FabricaForma {
+    @Override
+    public iForma criarForma() { return new Circulo(); }
+}
+
+new FabricaCirculo().renderizar();   // CÍRCULO
+
+VANTAGENS:
+- Baixo acoplamento: cliente não depende das classes concretas.
+- Princípio Aberto/Fechado (O do SOLID): aberto para extensão
+  (cria classe nova), fechado para modificação (não mexe no que existe).
+- Responsabilidade Única (S do SOLID): a criação fica num lugar só.
+- Polimorfismo: mesma chamada criarForma()/desenhar(), comportamentos diferentes.
+
+DESVANTAGENS:
+- Muitas classes: cada produto novo pede uma fábrica nova.
+- Código fica mais complexo para casos simples.
+
+QUANDO USAR:
+- Quando não se sabe de antemão qual classe exata vai ser criada.
+- Quando se quer permitir que o sistema seja estendido com novos tipos.
+- Quando se quer isolar/centralizar o código de criação de objetos.
+
+NÃO CONFUNDIR:
+- Factory Method: UM método de criação, cada subclasse/fábrica cria UM tipo
+  de produto. (é o da prova)
+- Abstract Factory: uma fábrica cria uma FAMÍLIA de produtos relacionados
+  (ex.: criarBotao() + criarJanela() para tema Windows / tema Mac).
+- Simple Factory (não é GoF): uma classe só com um if/switch
+  ex.: if (tipo.equals("circulo")) return new Circulo();
+  Mais simples, mas viola o Aberto/Fechado (tem que editar o if a cada tipo novo).
+
+//Factory Method
+
+
+//Diagrama UML (image.png) - como ler
+
+             <<interface>>
+Desenhista <>----- iFabricaForma
+                     ^       ^          (seta tracejada com triângulo vazio
+                     :       :           = "implements" / realização)
+          FabricaCirculo   FabricaRetangulo
+          +criarForma():iForma  +criarForma():iForma
+                     <>      <>
+                      \      /
+                    <<interface>>
+                       iForma
+                     ^       ^
+                     :       :
+                 Circulo   Retangulo
+                +desenhar() +desenhar()
+
+Símbolos UML:
+- Linha TRACEJADA + triângulo vazio  -> realização (implements interface)
+- Linha CHEIA + triângulo vazio      -> herança/generalização (extends)
+- Losango VAZIO <>                   -> agregação ("tem um", parte pode existir sozinha)
+- Losango CHEIO                      -> composição ("tem um", parte morre com o todo)
+- Seta simples                       -> associação / dependência (tracejada)
+- <<interface>>                      -> estereótipo indicando interface
+- "+" público, "-" privado, "#" protegido
+- Formato: +nomeMetodo(parametros): TipoRetorno
+
+//Diagrama UML
+
+
+//Exemplo do Auto (Injeção de Dependência / polimorfismo)
+
+Também tem no material do professor. Não é Factory Method, é o
+Auto recebendo o propulsor pelo construtor (injeção de dependência).
+Mostra a mesma ideia: depender da INTERFACE, não da classe concreta.
+
+public interface iPropulsor {
+    void acionar();
+    void desligar();
+}
+
+public class Combustao implements iPropulsor { ... "Acionando combustão" ... }
+public class Eletrico  implements iPropulsor { ... "Acionando elétrico" ... }
+
+public class Auto {
+    public iPropulsor propulsor;
+    Auto(iPropulsor propulsor) {          // construtor recebe a interface
+        this.propulsor = propulsor;
+    }
+}
+
+Auto carro = new Auto(new Combustao());
+carro.propulsor.acionar();    // Acionando combustão
+carro.propulsor.desligar();   // Desligando combustão
+
+Auto tesla = new Auto(new Eletrico());
+tesla.propulsor.acionar();    // Acionando elétrico
+
+Trocar o motor = trocar só o objeto passado no construtor. A classe Auto
+não muda. (Dava pra juntar com Factory: FabricaPropulsor com criarPropulsor().)
+
+//Exemplo do Auto
+
+
+//RESUMÃO PRA VÉSPERA
+
+1. Factory Method = padrão CRIACIONAL do GoF.
+2. Objetivo: delegar a criação de objetos para fábricas/subclasses,
+   o cliente não usa "new ClasseConcreta()".
+3. Participantes: Product (iForma), ConcreteProduct (Circulo, Retangulo),
+   Creator (iFabricaForma), ConcreteCreator (FabricaCirculo, FabricaRetangulo).
+4. O factory method é o criarForma(), que retorna o tipo da INTERFACE.
+5. Novo tipo = nova classe produto + nova classe fábrica, sem alterar nada.
+6. Princípios: Aberto/Fechado, baixo acoplamento, programar para interface.
+7. Desvantagem: aumenta o número de classes.
+8. Abstrata x Interface: abstrata tem estado/construtor e herda só 1;
+   interface não tem estado e pode implementar várias.
+9. UML: tracejado + triângulo = implements; cheio + triângulo = extends.
+
+//RESUMÃO

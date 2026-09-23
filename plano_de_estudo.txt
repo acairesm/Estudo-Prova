@@ -1,0 +1,124 @@
+PLANO DE ESTUDO - PROVA DE POO (Java)
+=====================================
+Material: interface_vs_classe_abstrata.txt
+
+REGRA DE OURO: ler não é estudar. Pra cada assunto:
+  1. Lê a parte do arquivo (10 min)
+  2. FECHA o arquivo e escreve o código de cabeça, no papel ou no VS Code
+  3. Confere com o arquivo e corrige o que errou
+  4. Explica em voz alta como se fosse pra um colega (se travar, não aprendeu)
+
+Os assuntos dependem um do outro, então ESTUDA NESSA ORDEM:
+Herança -> Polimorfismo -> Classe abstrata x Interface -> Factory Method
+-> Abstract Factory
+
+
+DIA 1 - HERANÇA (~1h30)
+-----------------------
+[ ] Ler a seção HERANÇA + "MAIS EXEMPLOS DE HERANÇA"
+[ ] Sem olhar, escrever: classe Animal (nome, comer()) e Cachorro extends
+    Animal com latir()
+[ ] Sem olhar, escrever: Funcionario e Gerente com bonus e
+    calcularSalario() sobrescrito
+[ ] Saber responder:
+    - O que é "extends"? O que o "super(...)" faz e onde ele fica?
+    - A filha acessa um atributo private da mãe? E um protected?
+    - Uma classe pode herdar de duas classes em Java?
+[ ] EXERCÍCIO: criar Conta (titular, saldo, sacar()) e
+    ContaEspecial extends Conta, que tem limite e deixa sacar além do saldo.
+
+
+DIA 2 - POLIMORFISMO (~1h30)
+----------------------------
+[ ] Ler a seção POLIMORFISMO + "MAIS EXEMPLOS DE POLIMORFISMO"
+[ ] Sem olhar, escrever: Forma abstrata, Retangulo e Circulo, e um
+    array Forma[] com um for chamando area()
+[ ] Sem olhar, escrever: interface Pagamento com Pix e Cartao
+[ ] Saber responder:
+    - O que é polimorfismo, numa frase?
+    - Diferença entre sobrescrita (override) e sobrecarga (overload)?
+      Qual é decidida na compilação e qual na execução?
+    - Funcionario f = new Gerente(...); f.mostrar() -> qual
+      calcularSalario() roda? Por quê?
+    - Por que f.getBonus() dá erro? Como resolver? (instanceof + cast)
+[ ] EXERCÍCIO: criar Instrumento com tocar(), e Violao, Bateria e Piano.
+    Colocar tudo num array e chamar tocar() em um for.
+
+
+DIA 3 - CLASSE ABSTRATA x INTERFACE (~1h30)
+-------------------------------------------
+[ ] Ler as seções 1 a 6 do arquivo
+[ ] Fazer a TABELA DE DIFERENÇAS de cabeça no papel (extends/implements,
+    quantas, atributos, construtor, métodos com corpo, "é um" x
+    "consegue fazer"). Confere e refaz até acertar tudo.
+[ ] Decorar a regra:
+    PRECISA PASSAR ATRIBUTOS -> CLASSE ABSTRATA
+    NÃO PRECISA              -> INTERFACE
+[ ] Saber responder:
+    - O que as duas têm de igual? (nenhuma dá "new", as duas têm métodos
+      abstratos, as duas permitem polimorfismo)
+    - Interface tem atributo? (não, só constante public static final)
+[ ] EXERCÍCIO: pra cada caso, dizer se é classe abstrata ou interface
+    e POR QUÊ:
+    a) Veiculo, com marca e ano, e Carro e Moto como filhas
+    b) "Imprimivel": Relatorio, Foto e Boleto podem ser impressos
+    c) Pessoa com nome e cpf, e Aluno e Professor como filhas
+    d) "Comparavel": qualquer coisa que dá pra comparar
+    (Respostas: a) abstrata  b) interface  c) abstrata  d) interface)
+[ ] EXERCÍCIO: escrever Pato extends Animal implements Voador de cabeça
+
+
+DIA 4 - FACTORY METHOD e ABSTRACT FACTORY (~2h)
+-----------------------------------------------
+[ ] Ler a seção FACTORY METHOD
+[ ] Sem olhar, escrever o exemplo da Logistica (Transporte, Caminhao,
+    Navio, Logistica com criarTransporte(), LogisticaTerrestre e
+    LogisticaMaritima)
+[ ] Ler a seção ABSTRACT FACTORY
+[ ] Sem olhar, escrever o exemplo do tema (Botao, Janela, FabricaTema,
+    FabricaClara, FabricaEscura)
+[ ] Fazer de cabeça a tabela FACTORY METHOD x ABSTRACT FACTORY
+[ ] Saber responder:
+    - Pra que serve um factory? (tirar o "new" do código que usa o objeto)
+    - Factory Method cria quantos produtos? E Abstract Factory?
+    - Onde está o polimorfismo nesses padrões?
+[ ] EXERCÍCIO Factory Method: Notificacao (interface) com Email e SMS.
+    Criar Notificador abstrato com criarNotificacao(), e
+    NotificadorEmail e NotificadorSMS.
+[ ] EXERCÍCIO Abstract Factory: FabricaMoveis com criarCadeira() e
+    criarMesa(), e duas famílias: Moderna e Classica.
+
+
+DIA 5 (VÉSPERA) - REVISÃO GERAL (~1h)
+-------------------------------------
+[ ] Numa folha em branco, SEM OLHAR NADA, escrever:
+    1. Um exemplo de herança com super e @Override
+    2. Um exemplo de polimorfismo com array + for
+    3. A tabela classe abstrata x interface
+    4. Um Factory Method
+    5. Um Abstract Factory
+[ ] Conferir com o arquivo e marcar o que errou
+[ ] Estudar SÓ o que errou
+[ ] Dormir cedo. Revisar no dia da prova não adianta.
+
+
+PEGADINHAS QUE COSTUMAM CAIR
+----------------------------
+- Classe abstrata NÃO pode ter "new", mas PODE ter construtor
+  (quem chama é a filha, com super).
+- A interface não tem atributo, só constante.
+- Uma classe dá "extends" em 1 classe só, mas "implements" em várias
+  interfaces.
+- Se a filha não implementa TODOS os métodos abstratos, ela também
+  tem que ser abstract.
+- Com "Mae x = new Filha();", só dá pra chamar métodos que existem em Mae,
+  mas roda a versão da Filha.
+- O super(...) tem que ser a PRIMEIRA linha do construtor.
+
+
+PROVA AMANHÃ? VERSÃO CORRIDA (~3h)
+----------------------------------
+1h   -> Dias 1 + 2 (herança e polimorfismo, só os exemplos principais)
+40m  -> Dia 3 (tabela + regra dos atributos + exercício a/b/c/d)
+1h   -> Dia 4 (escrever os dois factories de cabeça uma vez cada)
+20m  -> Ler as PEGADINHAS

@@ -1,0 +1,38 @@
+EXEMPLO 01 - FORMAS (mesmo diagrama do professor, image.png)
+Creator = INTERFACE
+
+                                   <<interface>>
+ +-------------------+           +------------------------+
+ |    Desenhista     |<>-------->|     iFabricaForma      |   <- Creator
+ +-------------------+           +------------------------+
+ | + main()          |           | + criarForma(): iForma |   <- factory method
+ +-------------------+           +------------------------+
+                                     ^                ^
+                                     :                :      (tracejado + triângulo
+                                     :                :       = implements)
+              +------------------------+   +------------------------+
+              |     FabricaCirculo     |   |    FabricaRetangulo    |  <- ConcreteCreator
+              +------------------------+   +------------------------+
+              | + criarForma(): iForma |   | + criarForma(): iForma |
+              +------------------------+   +------------------------+
+                          |   cria (new)              |   cria (new)
+                          v                           v
+                               <<interface>>
+                          +------------------+
+                          |      iForma      |   <- Product
+                          +------------------+
+                          | + desenhar()     |
+                          +------------------+
+                              ^          ^
+                              :          :
+                  +-------------+  +-------------+
+                  |   Circulo   |  |  Retangulo  |   <- ConcreteProduct
+                  +-------------+  +-------------+
+                  | + desenhar()|  | + desenhar()|
+                  +-------------+  +-------------+
+
+Fluxo:
+  Desenhista -> pede criarForma() pra fábrica -> fábrica dá new Circulo()
+  -> devolve como iForma -> Desenhista chama desenhar() sem saber a classe real.
+
+Rodar:  javac *.java && java Desenhista

@@ -1,0 +1,37 @@
+EXEMPLO 02 - LOGÍSTICA / TRANSPORTE (exemplo clássico do livro GoF / refactoring.guru)
+Creator = CLASSE ABSTRATA (com método concreto que USA o factory method)
+
+ +-----------------------------------+
+ |    <<abstract>> Logistica         |   <- Creator
+ +-----------------------------------+
+ | + criarTransporte(): iTransporte  |   <- factory method (abstrato, em itálico no UML)
+ | + planejarEntrega(carga): void    |   <- método concreto que chama criarTransporte()
+ +-----------------------------------+
+            ^                    ^
+            |                    |       (linha CHEIA + triângulo = extends / herança)
+ +----------------------+  +----------------------+
+ |  LogisticaTerrestre  |  |  LogisticaMaritima   |   <- ConcreteCreator
+ +----------------------+  +----------------------+
+ | + criarTransporte()  |  | + criarTransporte()  |
+ +----------------------+  +----------------------+
+            |  new                    |  new
+            v                         v
+                  <<interface>>
+          +---------------------------+
+          |        iTransporte        |   <- Product
+          +---------------------------+
+          | + entregar(carga): void   |
+          +---------------------------+
+               ^                ^
+               :                :        (tracejado + triângulo = implements)
+       +--------------+  +--------------+
+       |   Caminhao   |  |    Navio     |   <- ConcreteProduct
+       +--------------+  +--------------+
+       | + entregar() |  | + entregar() |
+       +--------------+  +--------------+
+
+Diferença pro exemplo 01: aqui o Creator é classe ABSTRATA e tem lógica própria
+(planejarEntrega). Essa lógica é a mesma pra todos, só o transporte muda.
+Isso é exatamente a definição do GoF: "deixa as SUBCLASSES decidirem qual classe instanciar".
+
+Rodar:  javac *.java && java Main

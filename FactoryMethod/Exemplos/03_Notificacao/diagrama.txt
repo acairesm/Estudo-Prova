@@ -1,0 +1,35 @@
+EXEMPLO 03 - NOTIFICAÇÕES (fábrica escolhida em TEMPO DE EXECUÇÃO)
+Creator = INTERFACE. Mostra também a diferença pra "Simple Factory".
+
+                                      <<interface>>
+ +-------------------+          +------------------------------------+
+ |     Main          |<>------->|         iFabricaNotificacao        |  <- Creator
+ +-------------------+          +------------------------------------+
+ | + main()          |          | + criarNotificacao(): iNotificacao |  <- factory method
+ +-------------------+          +------------------------------------+
+                                     ^              ^              ^
+                                     :              :              :
+                         +--------------+  +--------------+  +--------------+
+                         | FabricaEmail |  |  FabricaSMS  |  | FabricaPush  |  <- ConcreteCreator
+                         +--------------+  +--------------+  +--------------+
+                                |                 |                 |   new
+                                v                 v                 v
+                                        <<interface>>
+                              +----------------------------+
+                              |        iNotificacao        |   <- Product
+                              +----------------------------+
+                              | + enviar(msg: String): void|
+                              +----------------------------+
+                                 ^            ^           ^
+                                 :            :           :
+                          +-----------+ +-----------+ +-----------+
+                          |   Email   | |    SMS    | |   Push    |  <- ConcreteProduct
+                          +-----------+ +-----------+ +-----------+
+
+Ponto-chave: o Main escolhe a fábrica UMA vez (ex.: pela preferência do usuário)
+e o resto do sistema só usa iFabricaNotificacao / iNotificacao.
+
+Contraste: SimpleFactory.java (NÃO é GoF) usa if/switch numa classe só.
+Toda vez que surge um tipo novo, tem que EDITAR o switch -> viola Aberto/Fechado.
+
+Rodar:  javac *.java && java Main

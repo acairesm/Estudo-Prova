@@ -1,0 +1,425 @@
+INTERFACE x CLASSE ABSTRATA (Java)
+==================================
+
+1) O QUE ELAS TÊM DE IGUAL
+--------------------------
+- Nenhuma das duas pode ser instanciada direto (não dá pra fazer "new").
+- As duas servem de "molde"/contrato pra outras classes.
+- As duas podem ter métodos abstratos (só a assinatura, sem corpo),
+  que a classe filha/implementadora é OBRIGADA a implementar.
+- As duas permitem polimorfismo: você pode declarar uma variável do tipo
+  da interface ou da classe abstrata e guardar nela um objeto filho.
+    Ex: Animal a = new Cachorro();
+
+2) ELAS PASSAM ATRIBUTOS?
+-------------------------
+- CLASSE ABSTRATA: SIM. Pode ter atributos normais (private, protected,
+  public), com estado próprio de cada objeto. A classe filha herda esses
+  atributos.
+    public abstract class Animal {
+        protected String nome;      // atributo normal, herdado
+        public abstract void som();
+    }
+
+- INTERFACE: NÃO passa atributos de verdade. Ela só pode ter CONSTANTES,
+  que são automaticamente "public static final" (não mudam e são da
+  interface, não do objeto).
+    public interface Voador {
+        int ALTURA_MAX = 100;       // é uma constante, não um atributo
+        void voar();
+    }
+
+3) DIFERENÇAS
+-------------
+                        | CLASSE ABSTRATA          | INTERFACE
+------------------------+--------------------------+---------------------------
+Palavra-chave           | extends                  | implements
+Quantas a classe usa    | Só UMA (herança simples) | VÁRIAS ao mesmo tempo
+Atributos               | Sim, qualquer tipo       | Só constantes
+                        |                          | (public static final)
+Construtor              | Pode ter                 | Não tem
+Métodos com corpo       | Sim, normais             | Só "default" e "static"
+                        |                          | (a partir do Java 8)
+Métodos abstratos       | Precisa escrever         | Já são abstratos por
+                        | "abstract"               | padrão
+Modificadores de acesso | public, protected,       | Métodos são public
+                        | private                  | por padrão
+Ideia / relação         | "É UM" (Cachorro É UM    | "CONSEGUE FAZER"
+                        | Animal)                  | (Pato CONSEGUE Voar)
+
+4) QUANDO USAR CADA UMA
+-----------------------
+- Classe abstrata: quando as classes filhas são do mesmo "tipo" e
+  compartilham atributos e código em comum.
+- Interface: quando você quer definir um comportamento/capacidade que
+  classes diferentes podem ter, mesmo sem nenhuma relação entre elas.
+
+5) EXEMPLO JUNTANDO AS DUAS
+---------------------------
+    public abstract class Animal {
+        protected String nome;
+        public Animal(String nome) { this.nome = nome; }
+        public abstract void som();
+    }
+
+    public interface Voador {
+        void voar();
+    }
+
+    public class Pato extends Animal implements Voador {
+        public Pato(String nome) { super(nome); }
+        public void som()  { System.out.println(nome + ": quack"); }
+        public void voar() { System.out.println(nome + " voando"); }
+    }
+
+RESUMO EM UMA FRASE:
+Classe abstrata = herança com atributos e código compartilhado (só 1).
+Interface = contrato de comportamento, sem atributos (pode várias).
+
+6) REGRA PRÁTICA PRA PROVA
+--------------------------
+- Precisa PROPAGAR ATRIBUTOS (passar atributos pras filhas)?
+    -> usa CLASSE ABSTRATA.
+- NÃO precisa de atributos, só quer obrigar a ter certos métodos?
+    -> usa INTERFACE.
+
+
+==================================
+HERANÇA
+==================================
+É quando uma classe (filha) "recebe" os atributos e métodos de outra
+classe (mãe). Em Java usa "extends".
+
+- A filha reaproveita o código da mãe e pode adicionar coisas novas.
+- A filha pode SOBRESCREVER (@Override) métodos da mãe.
+- "super" chama o construtor ou os métodos da mãe.
+- Java só aceita herança de UMA classe (herança simples).
+- Relação "É UM": Cachorro É UM Animal.
+
+    public class Animal {
+        protected String nome;
+        public Animal(String nome) { this.nome = nome; }
+        public void comer() { System.out.println(nome + " comendo"); }
+    }
+
+    public class Cachorro extends Animal {
+        public Cachorro(String nome) { super(nome); }  // chama a mãe
+        public void latir() { System.out.println(nome + " latindo"); }
+    }
+
+    Cachorro c = new Cachorro("Rex");
+    c.comer();   // herdado da mãe
+    c.latir();   // próprio da filha
+
+
+==================================
+POLIMORFISMO
+==================================
+"Muitas formas". É quando o MESMO método se comporta de jeitos diferentes
+dependendo do objeto real que está na variável.
+
+- Uma variável do tipo da MÃE (ou da interface) pode guardar qualquer
+  objeto FILHO.
+- Na hora de rodar, o Java chama a versão do método da classe do objeto
+  real (não do tipo da variável).
+- Depende de herança ou interface + sobrescrita (@Override).
+
+    public abstract class Animal {
+        public abstract void som();
+    }
+    public class Cachorro extends Animal {
+        @Override public void som() { System.out.println("Au au"); }
+    }
+    public class Gato extends Animal {
+        @Override public void som() { System.out.println("Miau"); }
+    }
+
+    Animal[] animais = { new Cachorro(), new Gato() };
+    for (Animal a : animais) {
+        a.som();   // imprime "Au au" e depois "Miau"
+    }
+
+Tipos:
+- Sobrescrita (override): filha reescreve método da mãe. Decidido em
+  tempo de EXECUÇÃO. É o polimorfismo "de verdade".
+- Sobrecarga (overload): mesmo nome de método com parâmetros diferentes
+  na mesma classe. Decidido em tempo de COMPILAÇÃO.
+    int soma(int a, int b)
+    double soma(double a, double b)
+
+
+==================================
+FACTORY METHOD (padrão de projeto)
+==================================
+Ideia: em vez de dar "new" direto no código, você chama um MÉTODO que
+cria o objeto pra você. Quem decide QUAL classe criar é a subclasse
+(ou o método de fábrica).
+
+- Tira o "new" espalhado pelo código.
+- O código que usa só conhece a interface/classe mãe, não a classe
+  concreta.
+- Cria UM tipo de produto.
+
+    public interface Transporte {
+        void entregar();
+    }
+    public class Caminhao implements Transporte {
+        public void entregar() { System.out.println("Entrega por terra"); }
+    }
+    public class Navio implements Transporte {
+        public void entregar() { System.out.println("Entrega por mar"); }
+    }
+
+    // Criador com o método fábrica
+    public abstract class Logistica {
+        public abstract Transporte criarTransporte();   // FACTORY METHOD
+
+        public void planejarEntrega() {
+            Transporte t = criarTransporte();   // não sabe qual é
+            t.entregar();
+        }
+    }
+    public class LogisticaTerrestre extends Logistica {
+        public Transporte criarTransporte() { return new Caminhao(); }
+    }
+    public class LogisticaMaritima extends Logistica {
+        public Transporte criarTransporte() { return new Navio(); }
+    }
+
+    Logistica l = new LogisticaMaritima();
+    l.planejarEntrega();   // "Entrega por mar"
+
+
+==================================
+ABSTRACT FACTORY (padrão de projeto)
+==================================
+Ideia: uma "fábrica de fábricas". Cria uma FAMÍLIA de objetos
+relacionados que combinam entre si, sem dizer as classes concretas.
+
+- Uma interface de fábrica com VÁRIOS métodos de criação
+  (um pra cada produto da família).
+- Cada fábrica concreta cria uma família inteira que combina.
+- Ex: tema Claro cria BotaoClaro + JanelaClara;
+      tema Escuro cria BotaoEscuro + JanelaEscura.
+  Nunca mistura um botão claro com uma janela escura.
+
+    public interface Botao  { void desenhar(); }
+    public interface Janela { void abrir(); }
+
+    public class BotaoClaro  implements Botao  { public void desenhar() { System.out.println("Botão claro"); } }
+    public class JanelaClara implements Janela { public void abrir()    { System.out.println("Janela clara"); } }
+    public class BotaoEscuro  implements Botao  { public void desenhar() { System.out.println("Botão escuro"); } }
+    public class JanelaEscura implements Janela { public void abrir()    { System.out.println("Janela escura"); } }
+
+    // A ABSTRACT FACTORY
+    public interface FabricaTema {
+        Botao criarBotao();
+        Janela criarJanela();
+    }
+    public class FabricaClara implements FabricaTema {
+        public Botao criarBotao()   { return new BotaoClaro(); }
+        public Janela criarJanela() { return new JanelaClara(); }
+    }
+    public class FabricaEscura implements FabricaTema {
+        public Botao criarBotao()   { return new BotaoEscuro(); }
+        public Janela criarJanela() { return new JanelaEscura(); }
+    }
+
+    FabricaTema f = new FabricaEscura();
+    f.criarBotao().desenhar();   // "Botão escuro"
+    f.criarJanela().abrir();     // "Janela escura"
+
+
+FACTORY METHOD x ABSTRACT FACTORY
+---------------------------------
+                  | FACTORY METHOD              | ABSTRACT FACTORY
+------------------+-----------------------------+------------------------------
+O que cria        | UM produto                  | uma FAMÍLIA de produtos
+Quantos métodos   | Um método de criação        | Vários métodos de criação
+Como funciona     | Herança: a subclasse        | Composição: você recebe um
+                  | sobrescreve o método        | objeto fábrica e usa ele
+Exemplo           | Logística cria Transporte   | Tema cria Botão + Janela
+
+Os dois usam POLIMORFISMO: o código trabalha com a interface/classe mãe
+e não sabe qual classe concreta foi criada.
+
+
+==================================
+MAIS EXEMPLOS DE HERANÇA
+==================================
+
+EXEMPLO 1 - Funcionário
+-----------------------
+    public class Funcionario {
+        protected String nome;
+        protected double salario;
+
+        public Funcionario(String nome, double salario) {
+            this.nome = nome;
+            this.salario = salario;
+        }
+        public double calcularSalario() { return salario; }
+        public void mostrar() {
+            System.out.println(nome + " ganha R$ " + calcularSalario());
+        }
+    }
+
+    public class Gerente extends Funcionario {
+        private double bonus;                         // atributo novo
+
+        public Gerente(String nome, double salario, double bonus) {
+            super(nome, salario);                     // chama construtor da mãe
+            this.bonus = bonus;
+        }
+        @Override
+        public double calcularSalario() {
+            return super.calcularSalario() + bonus;   // usa o método da mãe
+        }
+    }
+
+    Gerente g = new Gerente("Ana", 5000, 2000);
+    g.mostrar();   // "Ana ganha R$ 7000.0"  (mostrar() foi herdado)
+
+O que cai na prova:
+- Gerente HERDA nome, salario e mostrar() sem reescrever.
+- Gerente ADICIONA o atributo bonus.
+- Gerente SOBRESCREVE calcularSalario().
+- super(...) chama o construtor da mãe (tem que ser a 1ª linha).
+- super.metodo() chama a versão da mãe.
+
+
+EXEMPLO 2 - Veículo (herança em vários níveis)
+----------------------------------------------
+    public class Veiculo {
+        protected String marca;
+        public Veiculo(String marca) { this.marca = marca; }
+        public void ligar() { System.out.println(marca + " ligado"); }
+    }
+
+    public class Carro extends Veiculo {
+        protected int portas;
+        public Carro(String marca, int portas) {
+            super(marca);
+            this.portas = portas;
+        }
+    }
+
+    public class CarroEletrico extends Carro {
+        public CarroEletrico(String marca) { super(marca, 4); }
+        public void carregar() { System.out.println(marca + " carregando"); }
+    }
+
+    CarroEletrico t = new CarroEletrico("Tesla");
+    t.ligar();      // veio de Veiculo (avó)
+    t.carregar();   // próprio
+    // CarroEletrico É UM Carro, que É UM Veiculo.
+
+
+EXEMPLO 3 - protected x private na herança
+------------------------------------------
+    public class Pessoa {
+        private String cpf;       // filha NÃO acessa direto
+        protected String nome;    // filha acessa direto
+
+        public String getCpf() { return cpf; }   // filha acessa pelo get
+    }
+
+    public class Aluno extends Pessoa {
+        public void teste() {
+            System.out.println(nome);       // OK
+            // System.out.println(cpf);     // ERRO: cpf é private
+            System.out.println(getCpf());   // OK
+        }
+    }
+
+
+==================================
+MAIS EXEMPLOS DE POLIMORFISMO
+==================================
+
+EXEMPLO 1 - Formas (com classe abstrata)
+----------------------------------------
+    public abstract class Forma {
+        public abstract double area();
+    }
+    public class Retangulo extends Forma {
+        private double base, altura;
+        public Retangulo(double b, double a) { base = b; altura = a; }
+        @Override public double area() { return base * altura; }
+    }
+    public class Circulo extends Forma {
+        private double raio;
+        public Circulo(double r) { raio = r; }
+        @Override public double area() { return Math.PI * raio * raio; }
+    }
+
+    Forma[] formas = { new Retangulo(2, 3), new Circulo(1) };
+    for (Forma f : formas) {
+        System.out.println(f.area());   // 6.0 e depois 3.14...
+    }
+    // Mesma chamada f.area(), resultado diferente pra cada objeto.
+
+
+EXEMPLO 2 - Pagamento (com interface)
+-------------------------------------
+    public interface Pagamento {
+        void pagar(double valor);
+    }
+    public class Pix implements Pagamento {
+        public void pagar(double valor) { System.out.println("Pix de R$ " + valor); }
+    }
+    public class Cartao implements Pagamento {
+        public void pagar(double valor) { System.out.println("Cartão: R$ " + valor); }
+    }
+    public class Boleto implements Pagamento {
+        public void pagar(double valor) { System.out.println("Boleto gerado: R$ " + valor); }
+    }
+
+    // Esse método aceita QUALQUER forma de pagamento
+    public static void finalizarCompra(Pagamento p, double valor) {
+        p.pagar(valor);
+    }
+
+    finalizarCompra(new Pix(), 50);      // "Pix de R$ 50.0"
+    finalizarCompra(new Cartao(), 80);   // "Cartão: R$ 80.0"
+    // Se criar uma classe nova (ex: Paypal), finalizarCompra não muda nada.
+
+
+EXEMPLO 3 - Usando o Funcionário/Gerente da herança
+---------------------------------------------------
+    Funcionario f1 = new Funcionario("João", 3000);
+    Funcionario f2 = new Gerente("Ana", 5000, 2000);   // variável da MÃE, objeto FILHO
+
+    f1.mostrar();   // "João ganha R$ 3000.0"
+    f2.mostrar();   // "Ana ganha R$ 7000.0"  -> chamou calcularSalario() do Gerente
+
+    // Pegadinha de prova:
+    // f2.getBonus();  -> ERRO de compilação se existisse, pois a variável
+    //                    é do tipo Funcionario. Só dá pra chamar métodos
+    //                    que existem em Funcionario.
+    // Pra acessar, precisa de CAST:
+    if (f2 instanceof Gerente) {
+        Gerente g2 = (Gerente) f2;
+    }
+
+
+EXEMPLO 4 - Sobrecarga (overload)
+---------------------------------
+    public class Calculadora {
+        public int somar(int a, int b)           { return a + b; }
+        public int somar(int a, int b, int c)    { return a + b + c; }
+        public double somar(double a, double b)  { return a + b; }
+    }
+
+    Calculadora c = new Calculadora();
+    c.somar(1, 2);        // chama o 1º -> 3
+    c.somar(1, 2, 3);     // chama o 2º -> 6
+    c.somar(1.5, 2.5);    // chama o 3º -> 4.0
+    // Mesmo nome, parâmetros diferentes. Decidido na COMPILAÇÃO.
+
+
+RESUMO
+------
+HERANÇA      = filha REAPROVEITA o que a mãe tem (extends, super).
+POLIMORFISMO = a mesma chamada faz coisas diferentes dependendo do
+               objeto real (override). Precisa de herança ou interface.

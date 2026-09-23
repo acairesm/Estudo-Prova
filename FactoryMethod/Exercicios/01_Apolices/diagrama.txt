@@ -1,0 +1,83 @@
+EXERCÍCIO 01 - SEGURADORA (Factory Method)
+
+Pensa assim: são só 2 FAMÍLIAS de classes.
+  - Família dos EMISSORES  -> quem FABRICA a apólice
+  - Família das APÓLICES   -> o que é FABRICADO
+
+Legenda:
+   ^
+   |    = "extends" (herda de / é filho de)
+
+   ---> = "usa" ou "cria"
+
+
+=====================================================
+ FAMÍLIA 1: OS EMISSORES (a fábrica)
+=====================================================
+
+         +-----------------------------+
+         |  EmissorApolice  (abstrata) |   <- o PAI
+         +-----------------------------+
+         |  criarApolice()   abstrato  |   <- MÉTODO FÁBRICA (o pai não sabe criar)
+         |  contratar()      final     |   <- passo a passo igual pra todos
+         +-----------------------------+
+                       ^
+                       |  (4 filhos)
+     +-------------+---+----------+--------------+
+     |             |              |              |
+ EmissorAuto  EmissorResid.   EmissorVida   EmissorViagem
+                                                    <- cada filho só faz:
+                                                       return new ApoliceXXX(...)
+
+
+=====================================================
+ FAMÍLIA 2: AS APÓLICES (o produto)
+=====================================================
+
+         +-----------------------------+
+         |  Apolice  (abstrata)        |   <- o PAI
+         +-----------------------------+
+         |  calcularPremio()           |
+         |  validarCobertura()         |
+         |  documentos()               |
+         |  gerarResumo()              |
+         +-----------------------------+
+                       ^
+                       |  (4 filhos)
+     +-------------+---+----------+--------------+
+     |             |              |              |
+ ApoliceAuto  ApoliceResid.   ApoliceVida   ApoliceViagem
+                                                    <- cada filho tem a SUA conta
+                                                       de preço e SUAS regras
+
+
+=====================================================
+ COMO AS DUAS FAMÍLIAS SE LIGAM
+=====================================================
+
+   Cliente ---usa---> EmissorApolice
+
+   EmissorAuto      ---cria---> ApoliceAuto
+   EmissorResid.    ---cria---> ApoliceResidencial
+   EmissorVida      ---cria---> ApoliceVida
+   EmissorViagem    ---cria---> ApoliceViagem
+
+   (é 1 pra 1: cada emissor fabrica o seu tipo de apólice)
+
+
+=====================================================
+ O QUE ACONTECE QUANDO RODA  cliente.emitir("auto")
+=====================================================
+
+   Cliente
+     |
+     v
+   EmissorAuto.contratar()        (método herdado do pai)
+     |
+     |-- 1. criarApolice()  -----> new ApoliceAuto   (o filho decide!)
+     |-- 2. validarCobertura()?  não -> REJEITADA
+     |-- 3. emitir()             -> número "AUTO-1" + data
+     |-- 4. gerarResumo()        -> texto final
+
+
+Quer um 5º seguro (ex: Pet)?  Cria ApolicePet + EmissorPet. Não mexe em mais nada.

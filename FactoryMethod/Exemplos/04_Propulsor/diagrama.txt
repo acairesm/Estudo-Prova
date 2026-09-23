@@ -1,0 +1,34 @@
+EXEMPLO 04 - AUTO + PROPULSOR (exemplo do professor TRANSFORMADO em Factory Method)
+No original do professor o main fazia "new Auto(new Combustao())".
+Aqui o Auto recebe uma FÁBRICA de propulsor e pede o motor pra ela.
+
+ +--------------------------------+            <<interface>>
+ |             Auto               |      +--------------------------------+
+ +--------------------------------+      |       iFabricaPropulsor        |  <- Creator
+ | - propulsor: iPropulsor        |<>--->+--------------------------------+
+ +--------------------------------+      | + criarPropulsor(): iPropulsor |  <- factory method
+ | + Auto(f: iFabricaPropulsor)   |      +--------------------------------+
+ | + ligar(): void                |              ^                ^
+ | + desligar(): void             |              :                :
+ +--------------------------------+   +-------------------+ +-------------------+
+                                      | FabricaCombustao  | | FabricaEletrico   | <- ConcreteCreator
+                                      +-------------------+ +-------------------+
+                                               |  new                |  new
+                                               v                     v
+                                              <<interface>>
+                                      +---------------------+
+                                      |     iPropulsor      |   <- Product
+                                      +---------------------+
+                                      | + acionar(): void   |
+                                      | + desligar(): void  |
+                                      +---------------------+
+                                           ^            ^
+                                           :            :
+                                  +-------------+  +-------------+
+                                  |  Combustao  |  |   Eletrico  |  <- ConcreteProduct
+                                  +-------------+  +-------------+
+
+"-" = private   "+" = public
+Losango vazio <> = agregação (Auto "tem um" propulsor)
+
+Rodar:  javac *.java && java ConsumidorAuto
