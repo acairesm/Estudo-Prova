@@ -1,0 +1,219 @@
+//Abstract Factory (PADRÃO DE PROJETO CRIACIONAL - GoF)
+
+O que é: uma fábrica que cria uma FAMÍLIA de produtos relacionados,
+que precisam combinar entre si. O cliente pede tudo para UMA fábrica
+e recebe produtos que sempre "batem" (nunca mistura país/tema).
+
+Definição (GoF): "Fornece uma interface para criar famílias de objetos
+relacionados ou dependentes sem especificar suas classes concretas."
+
+Problema que resolve: no checkout, o Brasil usa NFE + Pix + Correios.
+Se o cliente fizesse os "new" na mão, poderia misturar NFE + Credito
+alemão + ubs. Com a fábrica, escolheu BrasilFactory = tudo brasileiro.
+
+//Abstract Factory
+
+
+//A FÓRMULA (receita pra montar qualquer Abstract Factory)
+
+  1. Uma INTERFACE para cada tipo de produto          (Produto Abstrato)
+  2. Uma CLASSE para cada produto de cada família      (Produto Concreto)
+  3. Uma INTERFACE fábrica com um "criar" por produto  (Fábrica Abstrata)
+  4. Uma CLASSE fábrica para cada família              (Fábrica Concreta)
+  5. O CLIENTE só usa as interfaces
+  6. O MAIN escolhe qual fábrica concreta usar (único "new XFactory()")
+
+Conta de classes: N produtos x M famílias
+  -> N interfaces de produto + (N x M) produtos concretos
+     + 1 interface fábrica + M fábricas concretas
+  No checkout: 3 produtos x 3 países
+  -> 3 + 9 + 1 + 3 = 16 arquivos (+ Cliente + main)
+
+Formato genérico:
+
+  public interface ProdutoA { void fazerA(); }
+  public interface ProdutoB { void fazerB(); }
+
+  public class ProdutoA1 implements ProdutoA { ... }   // família 1
+  public class ProdutoB1 implements ProdutoB { ... }   // família 1
+
+  public interface FabricaAbstrata {
+      ProdutoA criarA();       // cada método RETORNA a INTERFACE do produto
+      ProdutoB criarB();
+  }
+
+  public class Fabrica1 implements FabricaAbstrata {
+      public ProdutoA criarA() { return new ProdutoA1(); }
+      public ProdutoB criarB() { return new ProdutoB1(); }
+  }
+
+  FabricaAbstrata f = new Fabrica1();   // troca aqui e troca a família inteira
+
+//A FÓRMULA
+
+
+//OS PARTICIPANTES NO CHECKOUT (decorar!)
+
+  Papel no padrão       | Nome genérico     | No exercício do Checkout
+  ----------------------|-------------------|-------------------------------------------
+  Fábrica Abstrata      | AbstractFactory   | CheckoutFactory (interface)
+  Fábrica Concreta      | ConcreteFactory   | BrasilFactory, AlemanhaFactory, EUAFactory
+  Produto Abstrato      | AbstractProduct   | DocumentoFiscal, ProcessamentoPagamento,
+                        |                   | EtiquetaEnvio (interfaces)
+  Produto Concreto      | ConcreteProduct   | NFE, Pix, Correios, VatInvoice, Credito,
+                        |                   | DeustschetPost, SalesInvoice, Debito, ubs
+  Cliente               | Client            | Cliente / main
+
+Quem cria o quê:
+
+  Fábrica         | documentoFiscal() | processamentoPagamento() | etiquetaEnvio()
+  ----------------|-------------------|--------------------------|----------------
+  BrasilFactory   | NFE               | Pix                      | Correios
+  AlemanhaFactory | VatInvoice        | Credito                  | DeustschetPost
+  EUAFactory      | SalesInvoice      | Debito                   | ubs
+
+//OS PARTICIPANTES
+
+
+//CADA MÉTODO EXPLICADO
+
+--- Métodos da FÁBRICA (CheckoutFactory) ---
+São os "métodos de criação". Não fazem a ação, só CRIAM e RETORNAM o objeto.
+
+public interface CheckoutFactory {
+    public DocumentoFiscal documentoFiscal();
+    public ProcessamentoPagamento processamentoPagamento();
+    public EtiquetaEnvio etiquetaEnvio();
+}
+
+documentoFiscal()
+  Retorna: DocumentoFiscal (a interface)
+  O que faz: cria a nota fiscal do país da fábrica.
+  Brasil -> return new NFE();
+  Alemanha -> return new VatInvoice();
+  EUA -> return new SalesInvoice();
+
+processamentoPagamento()
+  Retorna: ProcessamentoPagamento (a interface)
+  O que faz: cria a forma de pagamento do país da fábrica.
+  Brasil -> return new Pix();
+  Alemanha -> return new Credito();
+  EUA -> return new Debito();
+
+etiquetaEnvio()
+  Retorna: EtiquetaEnvio (a interface)
+  O que faz: cria a transportadora do país da fábrica.
+  Brasil -> return new Correios();
+  Alemanha -> return new DeustschetPost();
+  EUA -> return new ubs();
+
+POR QUE retorna a interface e não a classe (ex.: NFE)?
+  Porque o cliente não pode saber qual classe concreta veio. Se o
+  retorno fosse NFE, o cliente ficaria preso ao Brasil.
+
+Exemplo de fábrica concreta completa:
+
+public class BrasilFactory implements CheckoutFactory {
+    @Override
+    public DocumentoFiscal documentoFiscal() { return new NFE(); }
+
+    @Override
+    public ProcessamentoPagamento processamentoPagamento() { return new Pix(); }
+
+    @Override
+    public EtiquetaEnvio etiquetaEnvio() { return new Correios(); }
+}
+
+--- Métodos dos PRODUTOS ---
+Esses sim fazem a ação (aqui só imprimem).
+
+emitirNotaFiscal()      -> interface DocumentoFiscal
+  NFE:          "Emitindo nota fiscal eletrônica"
+  VatInvoice:   "Emitindo nota fiscal de imposto sobre valor agregado"
+  SalesInvoice: "Emitindo nota fiscal de venda"
+
+processarPagamento()    -> interface ProcessamentoPagamento
+  Pix:     "Processando pagamento via Pix"
+  Credito: "Processando pagamento via Crédito alemão"
+  Debito:  "Processando pagamento via Débito Americano"
+
+gerarEtiquetaEnvio()    -> interface EtiquetaEnvio
+  Correios:       "Gerando etiqueta de envio pelos Correios"
+  DeustschetPost: "Gerando etiqueta de envio pela Deutsche Post ingles"
+  ubs:            "Gerando etiqueta de envio pelos Correios ingles"
+
+--- Métodos do CLIENTE ---
+
+Cliente(CheckoutFactory factory)   (construtor)
+  Recebe QUALQUER fábrica (o tipo é a interface) e guarda no atributo.
+  É injeção de dependência: quem escolhe o país é quem cria o Cliente.
+
+finalizarCompra()
+  Pede os 3 produtos para a fábrica e usa cada um:
+    DocumentoFiscal doc = factory.documentoFiscal();
+    ProcessamentoPagamento pag = factory.processamentoPagamento();
+    EtiquetaEnvio etiqueta = factory.etiquetaEnvio();
+    pag.processarPagamento();
+    doc.emitirNotaFiscal();
+    etiqueta.gerarEtiquetaEnvio();
+  Não tem nenhum "new NFE()" nem "if (pais == ...)" aqui dentro.
+
+--- main ---
+
+public static void main(String[] args)
+  Ponto de entrada. PRECISA ser "public static void main(String[] args)".
+  (Sem "static void" vira construtor e o Java não acha o main.)
+  É o ÚNICO lugar que escolhe a fábrica concreta:
+    CheckoutFactory checkoutFactory = new AlemanhaFactory();
+  Trocar de país = trocar só essa linha.
+
+//CADA MÉTODO EXPLICADO
+
+
+//FACTORY METHOD x ABSTRACT FACTORY (a fórmula dos dois)
+
+                      | Factory Method              | Abstract Factory
+  --------------------|-----------------------------|------------------------------
+  Cria                | UM produto                  | uma FAMÍLIA de produtos
+  Métodos na fábrica  | 1 (criarForma())            | vários (1 por produto)
+  Objetivo            | deixar a subclasse decidir  | garantir que os produtos
+                      | qual classe criar           | combinam entre si
+  Exemplo da aula     | iFabricaForma -> iForma     | CheckoutFactory -> DocumentoFiscal
+                      |                             |   + ProcessamentoPagamento
+                      |                             |   + EtiquetaEnvio
+  Outro exemplo       | Logistica -> iTransporte    | DeliveryFactory -> Comida + Bebida
+  Novo tipo           | +1 produto +1 fábrica       | nova família: +1 fábrica e
+                      |                             |   +N produtos (fácil)
+                      |                             | novo produto: mexe na interface
+                      |                             |   e em TODAS as fábricas (difícil)
+
+Fórmula Factory Method:
+  interface Produto { ... }
+  interface Fabrica { Produto criar(); }            // UM método
+  class FabricaX implements Fabrica { Produto criar() { return new ProdutoX(); } }
+
+Fórmula Abstract Factory:
+  interface Fabrica { ProdutoA criarA(); ProdutoB criarB(); ProdutoC criarC(); }  // VÁRIOS
+  class FabricaX implements Fabrica { ...cada um retorna o produto da família X... }
+
+Dica: Abstract Factory é como "vários Factory Methods juntos na mesma
+fábrica", um para cada produto da família.
+
+//FACTORY METHOD x ABSTRACT FACTORY
+
+
+//RESUMÃO PRA VÉSPERA
+
+1. Abstract Factory = padrão CRIACIONAL do GoF.
+2. Cria FAMÍLIAS de produtos relacionados, sem o cliente dar "new" concreto.
+3. Participantes: AbstractFactory (CheckoutFactory), ConcreteFactory
+   (BrasilFactory...), AbstractProduct (DocumentoFiscal...),
+   ConcreteProduct (NFE, Pix...), Client (Cliente).
+4. Cada método da fábrica RETORNA a INTERFACE do produto.
+5. Escolher a fábrica = escolher a família inteira (uma linha no main).
+6. Vantagem: produtos sempre compatíveis, baixo acoplamento, Aberto/Fechado
+   para novas famílias (novo país = nova fábrica + produtos, nada muda).
+7. Desvantagem: muitas classes; adicionar um NOVO TIPO de produto obriga
+   a mexer na interface e em todas as fábricas.
+
+//RESUMÃO
