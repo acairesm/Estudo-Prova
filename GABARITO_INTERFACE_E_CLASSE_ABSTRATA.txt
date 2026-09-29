@@ -1,0 +1,395 @@
+GABARITO - COMO DECLARAR INTERFACE E CLASSE ABSTRATA (Java)
+==========================================================
+Foco: SINTAXE (como escrever) e o que CADA PALAVRA significa.
+(Conceito e "quando usar cada uma": ver interface_vs_classe_abstrata.txt)
+
+Índice:
+  1. Dicionário de palavras-chave
+  2. Anatomia de uma declaração de classe (peça por peça)
+  3. Anatomia de um método (peça por peça)
+  4. INTERFACE - molde para copiar
+  5. CLASSE ABSTRATA - molde para copiar
+  6. Classe CONCRETA usando as duas - molde para copiar
+  7. PODE x NÃO PODE (erros de compilação que caem em prova)
+  8. Receita passo a passo para a prova
+  9. Exemplo completo (compila e roda)
+
+
+######################################################################
+1. DICIONÁRIO DE PALAVRAS-CHAVE
+######################################################################
+
+--- Tipos de "coisa" que você declara ---
+class        -> declara uma classe (molde de objetos, dá pra dar new).
+interface    -> declara um CONTRATO: lista de métodos que quem
+                implementar é OBRIGADO a ter. Não dá new.
+abstract     -> "incompleto".
+                - Na classe: "abstract class" = classe que NÃO pode dar
+                  new; serve só de mãe.
+                - No método: método SEM CORPO (sem { }), termina com ;
+                  A filha é obrigada a escrever o corpo.
+
+--- Ligações entre classes ---
+extends      -> "herda de". Classe herda de classe (só UMA).
+                Interface também pode "extends" outra(s) interface(s).
+implements   -> "cumpre o contrato de". Classe implementa interface
+                (pode VÁRIAS, separadas por vírgula).
+
+--- Modificadores de acesso (quem enxerga) ---
+public       -> todo mundo enxerga.
+protected    -> a própria classe, as FILHAS e o mesmo pacote.
+(nada)       -> "default/package": só quem está no mesmo pacote.
+private      -> só a própria classe. Nem a filha enxerga.
+
+--- Outros modificadores ---
+static       -> pertence à CLASSE, não ao objeto. Chama sem new:
+                Math.sqrt(4), NomeDaInterface.metodo().
+final        -> "não muda mais".
+                - variável final: valor não pode ser trocado (constante).
+                - método final: filha NÃO pode sobrescrever.
+                - classe final: NINGUÉM pode herdar dela.
+default      -> (só em interface, Java 8+) método de interface QUE TEM
+                corpo. Quem implementa pode usar pronto ou sobrescrever.
+
+--- Dentro de métodos / construtores ---
+this         -> "eu mesmo" (o objeto atual). this.nome = nome;
+super        -> "minha mãe".
+                - super(...)      chama o construtor da mãe (1ª linha!).
+                - super.metodo()  chama a versão da mãe do método.
+new          -> cria um objeto: new Cachorro("Rex").
+return       -> devolve um valor e sai do método.
+void         -> o método NÃO devolve nada.
+@Override    -> anotação: "este método está sobrescrevendo/implementando
+                um da mãe/interface". Opcional, mas se o nome estiver
+                errado o compilador avisa. SEMPRE use.
+
+
+######################################################################
+2. ANATOMIA DE UMA DECLARAÇÃO DE CLASSE
+######################################################################
+
+    public abstract class Ave extends Animal implements Voador, Nadador {
+    ^^^^^^ ^^^^^^^^ ^^^^^ ^^^ ^^^^^^^ ^^^^^^ ^^^^^^^^^^ ^^^^^^^^^^^^^^^
+      1        2      3    4     5       6        7            8
+
+    1  public     -> qualquer um pode usar a classe.
+    2  abstract   -> não dá "new Ave()"; é só molde. (opcional)
+    3  class      -> estou declarando uma classe.
+    4  Ave        -> nome (começa com MAIÚSCULA; igual ao nome do .java).
+    5  extends    -> vou herdar de...
+    6  Animal     -> ...esta classe mãe (só UMA).
+    7  implements -> e vou cumprir o contrato de...
+    8  Voador, Nadador -> ...estas interfaces (quantas quiser).
+
+    ORDEM OBRIGATÓRIA: extends vem ANTES de implements.
+      class Pato extends Animal implements Voador      -> OK
+      class Pato implements Voador extends Animal      -> ERRO
+
+    Interface declarando:
+    public interface Voador extends Movel, Comparavel {
+    ^^^^^^ ^^^^^^^^^ ^^^^^^ ^^^^^^^ ^^^^^^^^^^^^^^^^^
+    público   é uma   nome  herda   pode herdar VÁRIAS interfaces
+            interface       de      (interface usa extends, NUNCA
+                                     implements)
+
+
+######################################################################
+3. ANATOMIA DE UM MÉTODO
+######################################################################
+
+    public abstract double calcularArea(double base, double altura);
+    ^^^^^^ ^^^^^^^^ ^^^^^^ ^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ^
+      1        2       3        4                  5                6
+
+    1  acesso           -> quem pode chamar.
+    2  abstract         -> sem corpo (opcional; só em classe abstrata
+                           ou implícito em interface).
+    3  tipo de retorno  -> o que devolve (void = nada).
+    4  nome             -> começa com minúscula (camelCase).
+    5  parâmetros       -> (tipo nome, tipo nome) ou () se nenhum.
+    6  ;                -> método abstrato termina em ; SEM { }.
+
+    Método normal (concreto) = mesma coisa, mas com corpo:
+    public double calcularArea(double base, double altura) {
+        return base * altura;
+    }
+
+    ASSINATURA = nome + tipos dos parâmetros. É o que precisa bater
+    quando a filha sobrescreve.
+
+
+######################################################################
+4. INTERFACE - MOLDE PARA COPIAR
+######################################################################
+
+    public interface Pagamento {
+
+        // (A) CONSTANTE
+        // O Java coloca sozinho: public static final
+        double TAXA = 0.05;
+
+        // (B) MÉTODO ABSTRATO (o mais comum!)
+        // O Java coloca sozinho: public abstract
+        // Sem corpo, termina com ;
+        void pagar(double valor);
+
+        // (C) MÉTODO DEFAULT (Java 8+) - tem corpo
+        // Quem implementa ganha pronto (pode sobrescrever se quiser).
+        default void imprimirRecibo(double valor) {
+            System.out.println("Recibo: R$ " + valor);
+        }
+
+        // (D) MÉTODO STATIC (Java 8+) - tem corpo
+        // Chama pelo nome da interface: Pagamento.calcularTaxa(100)
+        static double calcularTaxa(double valor) {
+            return valor * TAXA;
+        }
+    }
+
+    O QUE O JAVA ESCREVE "ESCONDIDO" NA INTERFACE:
+      você escreve              | o Java entende
+      --------------------------+-----------------------------------
+      double TAXA = 0.05;       | public static final double TAXA = 0.05;
+      void pagar(double v);     | public abstract void pagar(double v);
+
+    NA INTERFACE NÃO EXISTE:
+      - construtor
+      - atributo normal (só constante)
+      - método protected
+      - "new Pagamento()"
+
+    Na prova, 90% das vezes a interface é só isso:
+        public interface Observer {
+            void update(String nome, Double preco);
+        }
+
+
+######################################################################
+5. CLASSE ABSTRATA - MOLDE PARA COPIAR
+######################################################################
+
+    public abstract class Funcionario {
+
+        // (A) ATRIBUTOS NORMAIS - cada objeto tem os seus
+        // protected -> as filhas acessam direto
+        protected String nome;
+        protected double salarioBase;
+
+        // (B) CONSTRUTOR - PODE ter (mesmo sem poder dar new!)
+        // Quem chama é a filha, com super(...).
+        public Funcionario(String nome, double salarioBase) {
+            this.nome = nome;
+            this.salarioBase = salarioBase;
+        }
+
+        // (C) MÉTODO ABSTRATO - PRECISA escrever "abstract"
+        // Sem corpo. Toda filha concreta é OBRIGADA a implementar.
+        public abstract double calcularSalario();
+
+        // (D) MÉTODO CONCRETO - com corpo, a filha herda pronto
+        // Pode chamar o abstrato: cada filha responde do seu jeito.
+        public void mostrar() {
+            System.out.println(nome + " ganha R$ " + calcularSalario());
+        }
+
+        // (E) GET - acesso de fora
+        public String getNome() { return nome; }
+    }
+
+    DIFERENÇA DE ESCRITA PARA A INTERFACE:
+      - Aqui "abstract" NÃO é automático: escreva no método.
+      - Aqui "public" NÃO é automático: escreva.
+      - Aqui pode atributo normal, construtor, private, protected.
+
+    Uma classe abstrata PODE ter zero métodos abstratos (só não dá new).
+    Mas se tiver 1 método abstrato, a classe TEM que ser abstract.
+
+
+######################################################################
+6. CLASSE CONCRETA USANDO AS DUAS - MOLDE PARA COPIAR
+######################################################################
+
+    public class Gerente extends Funcionario implements Pagamento {
+
+        private double bonus;                 // atributo novo, só dela
+
+        public Gerente(String nome, double salarioBase, double bonus) {
+            super(nome, salarioBase);         // 1ª LINHA: construtor da mãe
+            this.bonus = bonus;
+        }
+
+        @Override                             // da classe abstrata
+        public double calcularSalario() {
+            return salarioBase + bonus;
+        }
+
+        @Override                             // da interface
+        public void pagar(double valor) {     // TEM que ser public!
+            System.out.println(nome + " recebeu R$ " + valor);
+        }
+    }
+
+    REGRAS DA CLASSE CONCRETA:
+      - Implementar TODOS os métodos abstratos da mãe e das interfaces.
+        Faltou 1? Erro... ou então a classe também vira abstract.
+      - Método vindo de interface é SEMPRE public na implementação.
+      - Se a mãe só tem construtor com parâmetros, a filha é
+        obrigada a chamar super(...) com os parâmetros.
+
+    USANDO (POLIMORFISMO):
+        Funcionario f = new Gerente("Ana", 5000, 2000);  // tipo da MÃE
+        Pagamento   p = new Gerente("Bia", 4000, 1000);  // tipo da INTERFACE
+        f.mostrar();       // Ana ganha R$ 7000.0
+        p.pagar(100);      // Bia recebeu R$ 100.0
+
+
+######################################################################
+7. PODE x NÃO PODE (ERROS QUE CAEM EM PROVA)
+######################################################################
+
+  CÓDIGO                                            | PODE?
+  --------------------------------------------------+--------------------
+  new Funcionario("x", 1)   (classe abstrata)       | NÃO
+  new Pagamento()           (interface)             | NÃO
+  Funcionario f = new Gerente(...)                  | SIM (polimorfismo)
+  Pagamento p = new Gerente(...)                    | SIM (polimorfismo)
+  class A extends B, C                              | NÃO (só 1 mãe)
+  class A implements X, Y, Z                        | SIM
+  class A implements X extends B                    | NÃO (ordem errada)
+  interface X implements Y                          | NÃO (use extends)
+  interface X extends Y, Z                          | SIM
+  método abstract COM corpo { }                     | NÃO
+  método normal SEM corpo (fora de interface)       | NÃO
+  método abstract dentro de classe NÃO abstract     | NÃO
+  classe abstract sem nenhum método abstract        | SIM
+  construtor em classe abstrata                     | SIM
+  construtor em interface                           | NÃO
+  atributo normal (que muda) em interface           | NÃO (vira constante)
+  implementar método da interface sem public        | NÃO (fica mais
+                                                    |  restrito = erro)
+  abstract + final no mesmo método/classe           | NÃO (contradição:
+                                                    |  "complete" x
+                                                    |  "não mexa")
+  abstract + private no mesmo método                | NÃO (filha não vê,
+                                                    |  não tem como
+                                                    |  implementar)
+  abstract + static no mesmo método                 | NÃO
+  super(...) fora da 1ª linha do construtor         | NÃO
+
+
+######################################################################
+8. RECEITA PASSO A PASSO PARA A PROVA
+######################################################################
+
+  1) Leia o enunciado e ache o que é COMUM entre as classes.
+  2) Tem ATRIBUTO em comum (nome, preço, saldo...)?
+       SIM -> public abstract class Mae { protected ...; }
+       NÃO, só MÉTODOS -> public interface Contrato { ... }
+  3) Escreva os métodos que TODO MUNDO tem que ter, mas cada um faz
+     diferente:
+       interface       -> void metodo(...);
+       classe abstrata -> public abstract void metodo(...);
+  4) Crie as classes concretas:
+       class Filha extends Mae        (classe abstrata)
+       class Filha implements Contrato (interface)
+  5) Em cada filha: @Override + public + o corpo do método.
+  6) Se a mãe tem construtor: a filha chama super(...) na 1ª linha.
+  7) No main: variável com o tipo da MÃE/INTERFACE, objeto da FILHA.
+       Contrato c = new Filha();
+       c.metodo();
+
+  CHECAGEM FINAL:
+    [ ] extends antes de implements?
+    [ ] Todo método abstrato foi implementado em cada filha?
+    [ ] Métodos da interface estão public na filha?
+    [ ] Método abstrato termina com ; e não tem { }?
+    [ ] Nenhum "new" em classe abstrata ou interface?
+    [ ] Imports? (List/ArrayList -> import java.util.*;)
+
+
+######################################################################
+9. EXEMPLO COMPLETO (compila e roda)
+######################################################################
+Salve cada classe no seu .java, rode: javac *.java && java Main
+
+    // Notificavel.java  -> INTERFACE (contrato)
+    public interface Notificavel {
+        void notificar(String mensagem);              // public abstract
+
+        default void notificarUrgente(String mensagem) {
+            notificar("[URGENTE] " + mensagem);
+        }
+    }
+
+    // Conta.java  -> CLASSE ABSTRATA (atributos em comum)
+    public abstract class Conta {
+        protected String titular;
+        protected double saldo;
+
+        public Conta(String titular, double saldo) {
+            this.titular = titular;
+            this.saldo = saldo;
+        }
+
+        public abstract double calcularTarifa();      // cada conta cobra
+                                                      // diferente
+        public void cobrarTarifa() {
+            saldo -= calcularTarifa();
+            System.out.println(titular + " -> saldo R$ " + saldo);
+        }
+    }
+
+    // ContaCorrente.java  -> CONCRETA: herda + implementa
+    public class ContaCorrente extends Conta implements Notificavel {
+        public ContaCorrente(String titular, double saldo) {
+            super(titular, saldo);
+        }
+
+        @Override
+        public double calcularTarifa() { return 15.0; }
+
+        @Override
+        public void notificar(String mensagem) {
+            System.out.println("SMS p/ " + titular + ": " + mensagem);
+        }
+    }
+
+    // Poupanca.java  -> CONCRETA: só herda
+    public class Poupanca extends Conta {
+        public Poupanca(String titular, double saldo) {
+            super(titular, saldo);
+        }
+
+        @Override
+        public double calcularTarifa() { return 0.0; }
+    }
+
+    // Main.java
+    public class Main {
+        public static void main(String[] args) {
+            Conta[] contas = { new ContaCorrente("Ana", 100),
+                               new Poupanca("Bia", 100) };
+            for (Conta c : contas) {
+                c.cobrarTarifa();                     // polimorfismo
+            }
+
+            Notificavel n = new ContaCorrente("Caio", 50);
+            n.notificar("Tarifa cobrada");
+            n.notificarUrgente("Saldo baixo");        // veio do default
+        }
+    }
+
+    SAÍDA:
+        Ana -> saldo R$ 85.0
+        Bia -> saldo R$ 100.0
+        SMS p/ Caio: Tarifa cobrada
+        SMS p/ Caio: [URGENTE] Saldo baixo
+
+
+RESUMO EM 4 LINHAS
+------------------
+interface       = "public interface X { void m(); }"    -> implements
+classe abstrata = "public abstract class X { ... public abstract void m(); }"
+                                                        -> extends
+Na interface o Java põe public abstract sozinho; na abstrata, VOCÊ põe.
+Nenhuma das duas dá new; as duas servem de TIPO de variável.
