@@ -1,0 +1,96 @@
+EXERCÍCIO 01 - STATUS DO PEDIDO (Observer)
+==========================================
+
+Contexto:
+Um app de delivery precisa avisar várias partes sempre que o STATUS de
+um pedido muda. Hoje o código faz tudo "na mão" dentro do Pedido
+(new Cliente(), new Restaurante()... e chama um por um). Refaça usando
+o padrão OBSERVER.
+
+Status possíveis (use String mesmo):
+  "Recebido" -> "Em preparo" -> "Saiu para entrega" -> "Entregue"
+
+
+O QUE CRIAR (1 arquivo .java por classe/interface)
+--------------------------------------------------
+1. Interface Observer
+     void update(String status);
+
+2. Interface Subject
+     void attach(Observer o);
+     void detach(Observer o);
+     void notifyObservers();
+
+3. Classe Pedido implements Subject          (ConcreteSubject)
+     - atributo numero (int)
+     - atributo status (String)
+     - lista de observadores
+     - setStatus(String status): muda o status e notifica todo mundo
+
+4. Três observadores (ConcreteObserver):
+     AppCliente   -> "[App Cliente] Seu pedido agora está: <status>"
+     Restaurante  -> "[Restaurante] Pedido atualizado para: <status>"
+     Entregador   -> "[Entregador] Status do pedido: <status>"
+
+5. Classe Main
+     - cria um Pedido
+     - faz attach dos 3 observadores
+     - muda o status para "Em preparo"
+     - muda o status para "Saiu para entrega"
+     - faz DETACH do Restaurante (ele não precisa mais saber)
+     - muda o status para "Entregue"
+
+
+SAÍDA ESPERADA
+--------------
+[App Cliente] Seu pedido agora está: Em preparo
+[Restaurante] Pedido atualizado para: Em preparo
+[Entregador] Status do pedido: Em preparo
+[App Cliente] Seu pedido agora está: Saiu para entrega
+[Restaurante] Pedido atualizado para: Saiu para entrega
+[Entregador] Status do pedido: Saiu para entrega
+[App Cliente] Seu pedido agora está: Entregue
+[Entregador] Status do pedido: Entregue
+
+(Repara: no "Entregue" o Restaurante NÃO aparece, por causa do detach.)
+
+
+REGRAS
+------
+[ ] Pedido NÃO pode ter nenhum "new AppCliente()" nem "new Restaurante()"
+    dentro dele. Ele só conhece a interface Observer.
+[ ] A lista no Pedido é do tipo List<Observer>.
+[ ] Quem chama notifyObservers() é o setStatus(), não o main.
+[ ] Nenhum if/switch pra decidir quem avisar.
+
+
+ANTES DE CODAR (no papel)
+-------------------------
+[ ] Desenhe o diagrama UML: Subject, Observer, Pedido e os 3 observadores,
+    com as setas certas (implements e a lista 0..*).
+[ ] Preencha a tabela:
+      Papel no padrão   | Classe no exercício
+      Subject           |
+      ConcreteSubject   |
+      Observer          |
+      ConcreteObserver  |
+      Client            |
+
+
+DESAFIOS EXTRAS (depois que funcionar)
+--------------------------------------
+[ ] EXTRA 1: crie um 4º observador, Nutricionista, que só imprime algo
+    quando o status for "Entregue". Você precisou mexer no Pedido?
+    (Resposta certa: não. Isso é o Aberto/Fechado.)
+[ ] EXTRA 2: troque para o modelo PULL:
+      update(Subject s)  e dentro do observer use ((Pedido) s).getStatus()
+    O que mudou no diagrama UML? (a seta opcional Observer -> Pedido)
+[ ] EXTRA 3: faça a mensagem mostrar o número do pedido também
+    ("Pedido #42 ..."). Em qual modelo (push ou pull) ficou mais fácil?
+
+
+PERGUNTAS PRA RESPONDER DE CABEÇA
+---------------------------------
+- Por que o Pedido guarda List<Observer> e não List<AppCliente>?
+- O que acontece se esquecer de chamar notifyObservers() no setStatus()?
+- Observer é criacional, estrutural ou comportamental? Por quê?

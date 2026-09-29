@@ -1,0 +1,188 @@
+//Observer (PADRÃO DE PROJETO COMPORTAMENTAL - GoF)
+
+O que é: um objeto (o SUJEITO) tem uma LISTA de interessados (os
+OBSERVADORES). Quando o estado dele muda, ele avisa TODO MUNDO da lista
+automaticamente, chamando update() em cada um.
+
+Definição (GoF): "Define uma dependência um-para-muitos entre objetos,
+de modo que quando um objeto muda de estado, todos os seus dependentes
+são notificados e atualizados automaticamente."
+
+Analogia: inscrever-se num canal do YouTube.
+  Canal = Sujeito | Inscritos = Observadores
+  Inscrever = attach() | Cancelar inscrição = detach()
+  Postou vídeo = mudou o estado -> notifyObservers() -> todo inscrito
+  recebe o sininho (update()).
+
+Diferença pros outros que já estudei:
+  Factory Method / Abstract Factory = CRIACIONAIS (como CRIAR objetos)
+  Observer                          = COMPORTAMENTAL (como os objetos
+                                      CONVERSAM entre si)
+
+//Observer
+
+
+//QUANDO USAR
+
+USE quando:
+  1. Uma mudança em UM objeto precisa refletir em VÁRIOS outros, e você
+     não sabe (ou não quer saber) quantos nem quais são.
+  2. Os interessados podem entrar e sair em tempo de execução
+     (inscrever / desinscrever).
+  3. Você quer que o objeto principal NÃO dependa das classes concretas
+     de quem reage a ele (baixo acoplamento).
+
+Exemplos reais:
+  - Botão na tela: button.addActionListener(...) / addEventListener(...)
+  - Notificação de app (pedido saiu pra entrega, avisa cliente e loja)
+  - Planilha: muda a célula, o gráfico se atualiza sozinho
+  - Bolsa de valores: preço muda, todos os painéis atualizam
+  - Estoque: produto voltou, avisa quem pediu "me avise quando chegar"
+
+NÃO USE quando:
+  - Só existe UM interessado fixo e isso nunca muda -> chama o método
+    direto, sem padrão.
+  - A ordem de quem é avisado importa muito (o Observer não garante
+    ordem, é só a ordem da lista).
+
+Sinal na prova/enunciado: "quando X mudar, AVISAR / NOTIFICAR / ATUALIZAR
+automaticamente A, B e C" -> é Observer.
+
+//QUANDO USAR
+
+
+//DIAGRAMA UML
+
+    ┌──────────────────────────┐            ┌──────────────────────┐
+    │ <<interface>> Subject    │ observers  │ <<interface>>        │
+    ├──────────────────────────┤◇──────────>│ Observer             │
+    │ + attach(o: Observer)    │   0..*     ├──────────────────────┤
+    │ + detach(o: Observer)    │            │ + update(): void     │
+    │ + notifyObservers()      │            └──────────▲───────────┘
+    └────────────▲─────────────┘                       ┆
+                 ┆ implements                          ┆ implements
+    ┌────────────┴─────────────┐            ┌──────────┴───────────┐
+    │ ConcreteSubject          │<───────────│ ConcreteObserver     │
+    ├──────────────────────────┤  (opcional)├──────────────────────┤
+    │ - state                  │            │ + update(): void     │
+    │ - observers: List<Obs.>  │            └──────────────────────┘
+    ├──────────────────────────┤
+    │ + getState()             │
+    │ + setState(s)            │
+    └──────────────────────────┘
+
+Como ler as setas:
+  ◇──> 0..*    Subject guarda uma LISTA de Observer (um-para-muitos).
+               Conhece só a INTERFACE, nunca a classe concreta.
+  - - -▷       implements (classe concreta realiza a interface).
+  ConcreteObserver ──> ConcreteSubject (opcional): só existe no modelo
+               PULL, quando o observer precisa chamar getState().
+
+Fluxo (decorar):
+  setState(x) -> notifyObservers() -> for na lista -> o.update() em cada um
+
+//DIAGRAMA UML
+
+
+//A FÓRMULA (receita pra montar qualquer Observer)
+
+  1. Uma INTERFACE Observer com update(...)
+  2. Uma INTERFACE Subject com attach, detach e notifyObservers
+  3. Uma CLASSE sujeito concreto com:
+       - o ESTADO (o dado que muda)
+       - uma List<Observer>
+       - no setter do estado: muda e chama notifyObservers()
+  4. Uma CLASSE para cada observador concreto, implementando update()
+  5. O MAIN cria o sujeito, faz attach dos observadores e muda o estado
+
+Formato genérico:
+
+  public interface Observer {
+      void update(String dado);
+  }
+
+  public interface Subject {
+      void attach(Observer o);
+      void detach(Observer o);
+      void notifyObservers();
+  }
+
+  public class Sujeito implements Subject {
+      private List<Observer> observers = new ArrayList<>();
+      private String estado;
+
+      public void attach(Observer o) { observers.add(o); }
+      public void detach(Observer o) { observers.remove(o); }
+
+      public void notifyObservers() {
+          for (Observer o : observers) {
+              o.update(estado);
+          }
+      }
+
+      public void setEstado(String estado) {
+          this.estado = estado;
+          notifyObservers();          // <- O CORAÇÃO DO PADRÃO
+      }
+  }
+
+  public class ObservadorA implements Observer {
+      public void update(String dado) {
+          System.out.println("A recebeu: " + dado);
+      }
+  }
+
+  // main
+  Sujeito s = new Sujeito();
+  s.attach(new ObservadorA());
+  s.attach(new ObservadorB());
+  s.setEstado("mudou!");      // A e B imprimem
+
+Imports necessários: import java.util.List; import java.util.ArrayList;
+
+//A FÓRMULA
+
+
+//OS PARTICIPANTES (decorar!)
+
+  Papel no padrão   | O que faz
+  ------------------|---------------------------------------------------
+  Subject           | Interface: attach, detach, notifyObservers
+  ConcreteSubject   | Guarda o estado + a lista; avisa quando muda
+  Observer          | Interface: update()
+  ConcreteObserver  | Reage à notificação (imprime, manda e-mail, etc.)
+  Client (main)     | Monta tudo: cria sujeito, inscreve observadores
+
+//OS PARTICIPANTES
+
+
+//PUSH x PULL (cai em prova)
+
+  PUSH: o sujeito EMPURRA o dado junto com a notificação.
+        update(String status)
+        + simples, observer não precisa conhecer o sujeito
+        - todo observer recebe o dado, mesmo sem precisar dele
+
+  PULL: o sujeito só avisa "mudei", o observer PUXA o que quiser.
+        update(Subject s)  ->  dentro: ((Pedido) s).getStatus()
+        + cada observer pega só o que precisa
+        - observer fica acoplado ao sujeito concreto (é a seta opcional
+          do UML)
+
+//PUSH x PULL
+
+
+//RESUMÃO PRA VÉSPERA
+
+1. Observer = padrão COMPORTAMENTAL do GoF.
+2. Dependência UM-PARA-MUITOS: um sujeito, vários observadores.
+3. Mudou o estado -> notifyObservers() -> update() em todo mundo da lista.
+4. Participantes: Subject, ConcreteSubject, Observer, ConcreteObserver.
+5. Sujeito conhece só a INTERFACE Observer -> baixo acoplamento.
+6. Vantagem: novo observador = nova classe + attach, sem mexer no sujeito
+   (Aberto/Fechado). Inscrever/desinscrever em tempo de execução.
+7. Desvantagem: ordem de notificação não garantida; muitos observers =
+   muitas chamadas; esquecer o detach deixa objeto "pendurado" na lista.
+8. Palavra-chave no enunciado: "notificar / avisar automaticamente".
+
+//RESUMÃO

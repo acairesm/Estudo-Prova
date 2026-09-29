@@ -1,0 +1,522 @@
+RESUMO GERAL - PROVA DE POO (Java)
+==================================
+Conteúdos: Herança -> Polimorfismo -> Classe Abstrata -> Interface
+           -> Factory Method -> Abstract Factory
+
+Um depende do outro, nessa ordem:
+  - Polimorfismo só existe porque existe HERANÇA ou INTERFACE.
+  - Classe abstrata e interface são "moldes" que existem PRA ter polimorfismo.
+  - Os padrões Factory usam interface + polimorfismo pra tirar o "new"
+    do código que usa o objeto.
+
+Índice:
+  PARTE 1 - Cada conteúdo explicado
+  PARTE 2 - Comparações (diferenças, por que são parecidos, quando usar)
+  PARTE 3 - Como decidir na prova (fluxograma)
+  PARTE 4 - Pegadinhas
+  PARTE 5 - Perguntas de prova com resposta
+
+
+######################################################################
+PARTE 1 - CADA CONTEÚDO EXPLICADO
+######################################################################
+
+==================================
+1.1 HERANÇA
+==================================
+O que é: uma classe FILHA recebe os atributos e métodos da classe MÃE.
+Palavra-chave: extends
+Relação: "É UM" -> Cachorro É UM Animal.
+
+Regras:
+- A filha reaproveita tudo da mãe e pode ADICIONAR coisas novas.
+- A filha pode SOBRESCREVER (@Override) um método da mãe.
+- super(...)   -> chama o construtor da mãe (TEM que ser a 1ª linha).
+- super.metodo() -> chama a versão da mãe de um método.
+- Java só deixa herdar de UMA classe (herança simples).
+- private da mãe: a filha NÃO acessa direto (só por get/set).
+- protected da mãe: a filha acessa direto.
+- Construtor NÃO é herdado (a filha chama com super).
+
+    public class Animal {
+        protected String nome;
+        public Animal(String nome) { this.nome = nome; }
+        public void comer() { System.out.println(nome + " comendo"); }
+    }
+
+    public class Cachorro extends Animal {
+        public Cachorro(String nome) { super(nome); }
+        public void latir() { System.out.println(nome + " latindo"); }
+    }
+
+    Cachorro c = new Cachorro("Rex");
+    c.comer();   // herdado da mãe
+    c.latir();   // próprio da filha
+
+Quando usar: quando as classes são do MESMO TIPO e dividem atributos
+e código (Funcionario -> Gerente, Veiculo -> Carro).
+
+
+==================================
+1.2 POLIMORFISMO
+==================================
+O que é: "muitas formas". A MESMA chamada de método faz coisas
+diferentes dependendo do OBJETO REAL que está na variável.
+
+Como funciona:
+- Uma variável do tipo da MÃE (ou da INTERFACE) guarda um objeto FILHO.
+    Animal a = new Cachorro();
+- Na execução, o Java roda o método da classe do OBJETO (Cachorro),
+  não do tipo da variável (Animal).
+- Só dá pra CHAMAR métodos que existem no tipo da variável (Animal).
+  Pra usar um método só da filha, precisa de cast:
+    if (a instanceof Cachorro) { ((Cachorro) a).latir(); }
+
+    Animal[] animais = { new Cachorro("Rex"), new Gato("Tom") };
+    for (Animal a : animais) {
+        a.som();   // "Au au" e depois "Miau"
+    }
+
+Dois tipos:
+- SOBRESCRITA (override): a filha reescreve o método da mãe, com a
+  MESMA assinatura. Decidido na EXECUÇÃO. É o polimorfismo "de verdade".
+- SOBRECARGA (overload): mesmo nome, PARÂMETROS diferentes, na mesma
+  classe. Decidido na COMPILAÇÃO.
+    int somar(int a, int b)
+    int somar(int a, int b, int c)
+    double somar(double a, double b)
+
+Quando usar: sempre que quiser tratar objetos diferentes do mesmo jeito
+(um for que chama area() em qualquer Forma, um finalizarCompra() que
+aceita qualquer Pagamento).
+
+
+==================================
+1.3 CLASSE ABSTRATA
+==================================
+O que é: uma classe "incompleta", que serve só de BASE. Não dá "new".
+Palavra-chave: abstract class / a filha usa extends
+
+Pode ter:
+- Atributos normais (com estado de cada objeto).
+- Construtor (quem chama é a filha, com super).
+- Métodos normais (com corpo), que as filhas herdam.
+- Métodos abstratos (sem corpo), que as filhas são OBRIGADAS a implementar.
+
+    public abstract class Forma {
+        protected String nome;
+        public Forma(String nome) { this.nome = nome; }
+
+        public abstract double area();          // filha TEM que fazer
+
+        public void exibir() {                  // filha herda pronto
+            System.out.println(nome + ": " + area());
+        }
+    }
+
+    public class Circulo extends Forma {
+        private double raio;
+        public Circulo(double raio) { super("Círculo"); this.raio = raio; }
+        @Override public double area() { return Math.PI * raio * raio; }
+    }
+
+    Forma f = new Circulo(2);   // OK
+    // new Forma("x");          // ERRO: abstrata não dá new
+
+Quando usar: as filhas são do mesmo tipo E precisam receber ATRIBUTOS
+e código em comum, mas a mãe sozinha não faz sentido existir
+(não existe "uma Forma", existe Círculo, Retângulo...).
+
+
+==================================
+1.4 INTERFACE
+==================================
+O que é: um CONTRATO. Diz O QUE a classe tem que fazer, não COMO.
+Palavra-chave: interface / a classe usa implements
+Relação: "CONSEGUE FAZER" -> Pato CONSEGUE voar.
+
+Regras:
+- Métodos são public e abstract por padrão (não precisa escrever).
+- NÃO tem atributo, só CONSTANTE (public static final automático).
+- NÃO tem construtor.
+- Uma classe pode implementar VÁRIAS: implements A, B, C.
+- Desde o Java 8 pode ter métodos "default" e "static" com corpo.
+- Quem implementa é OBRIGADO a implementar todos os métodos
+  (e tem que deixar public).
+
+    public interface Voador {
+        void voar();
+    }
+
+    public class Pato extends Animal implements Voador {
+        public Pato(String nome) { super(nome); }
+        public void som()  { System.out.println("quack"); }
+        public void voar() { System.out.println(nome + " voando"); }
+    }
+
+    Voador v = new Pato("Donald");   // OK: tipo interface, objeto concreto
+    // new Voador();                 // ERRO
+
+Quando usar: definir uma CAPACIDADE que classes sem nenhuma relação
+podem ter (Relatorio, Foto e Boleto são "Imprimivel"), ou quando não
+precisa passar atributos, só obrigar a ter certos métodos.
+
+
+==================================
+1.5 FACTORY METHOD (padrão de projeto criacional - GoF)
+==================================
+O que é: em vez de dar "new ClasseConcreta()" no código, você chama um
+MÉTODO que cria o objeto. Cada fábrica/subclasse decide QUAL classe criar.
+Cria UM tipo de produto.
+
+Problema que resolve: "new" espalhado pelo código deixa tudo amarrado
+às classes concretas. Pra trocar/adicionar um tipo, mexe em tudo.
+
+Participantes:
+  Produto            -> iForma / Transporte          (interface)
+  Produto Concreto   -> Circulo, Retangulo / Caminhao, Navio
+  Criador            -> iFabricaForma / Logistica    (interface ou abstrata)
+  Criador Concreto   -> FabricaCirculo / LogisticaTerrestre
+  Cliente            -> quem usa (main, Desenhista)
+
+    public interface Transporte { void entregar(); }
+    public class Caminhao implements Transporte {
+        public void entregar() { System.out.println("Entrega por terra"); }
+    }
+    public class Navio implements Transporte {
+        public void entregar() { System.out.println("Entrega por mar"); }
+    }
+
+    public abstract class Logistica {
+        public abstract Transporte criarTransporte();   // O FACTORY METHOD
+
+        public void planejarEntrega() {
+            Transporte t = criarTransporte();   // não sabe qual vem
+            t.entregar();
+        }
+    }
+    public class LogisticaTerrestre extends Logistica {
+        public Transporte criarTransporte() { return new Caminhao(); }
+    }
+    public class LogisticaMaritima extends Logistica {
+        public Transporte criarTransporte() { return new Navio(); }
+    }
+
+    Logistica l = new LogisticaMaritima();
+    l.planejarEntrega();   // "Entrega por mar"
+
+Quando usar: quando o código não sabe de antemão qual classe vai ser
+criada, ou quando quer poder adicionar tipos novos sem mexer no que
+já existe (tipo novo = +1 produto +1 fábrica).
+
+
+==================================
+1.6 ABSTRACT FACTORY (padrão de projeto criacional - GoF)
+==================================
+O que é: uma fábrica que cria uma FAMÍLIA de produtos que COMBINAM entre
+si. Tem VÁRIOS métodos de criação, um por produto.
+
+Problema que resolve: não misturar produtos de famílias diferentes.
+Escolheu BrasilFactory = NFE + Pix + Correios, nunca Pix + Deutsche Post.
+
+Participantes (no exercício do Checkout):
+  Fábrica Abstrata   -> CheckoutFactory
+  Fábrica Concreta   -> BrasilFactory, AlemanhaFactory, EUAFactory
+  Produto Abstrato   -> DocumentoFiscal, ProcessamentoPagamento, EtiquetaEnvio
+  Produto Concreto   -> NFE, Pix, Correios, VatInvoice, Credito, ...
+  Cliente            -> Cliente / main
+
+    public interface CheckoutFactory {
+        DocumentoFiscal documentoFiscal();
+        ProcessamentoPagamento processamentoPagamento();
+        EtiquetaEnvio etiquetaEnvio();
+    }
+
+    public class BrasilFactory implements CheckoutFactory {
+        public DocumentoFiscal documentoFiscal() { return new NFE(); }
+        public ProcessamentoPagamento processamentoPagamento() { return new Pix(); }
+        public EtiquetaEnvio etiquetaEnvio() { return new Correios(); }
+    }
+
+    CheckoutFactory f = new BrasilFactory();   // troca AQUI e troca tudo
+    f.documentoFiscal().emitirNotaFiscal();    // "Emitindo nota fiscal eletrônica"
+    f.processamentoPagamento().processarPagamento();   // "...via Pix"
+
+Quando usar: quando o sistema trabalha com FAMÍLIAS de objetos que
+precisam andar juntos (país: nota + pagamento + frete; tema: botão +
+janela; delivery: comida + bebida; móveis: cadeira + mesa).
+
+(Detalhes do Checkout: AbstractFactory/Anotações(André)/AbstractFactory.txt)
+
+
+######################################################################
+PARTE 2 - COMPARAÇÕES
+######################################################################
+
+==================================
+2.1 CLASSE ABSTRATA x INTERFACE  (a que MAIS cai)
+==================================
+
+POR QUE SÃO PARECIDAS (o que têm de IGUAL):
+- Nenhuma das duas dá "new".
+- As duas são "moldes" / contratos pra outras classes.
+- As duas podem ter métodos abstratos que a filha é OBRIGADA a fazer.
+- As duas podem ser usadas como TIPO de variável -> as duas permitem
+  POLIMORFISMO:  Animal a = new Cachorro();   Voador v = new Pato();
+
+DIFERENÇAS:
+                        | CLASSE ABSTRATA          | INTERFACE
+------------------------+--------------------------+---------------------------
+Palavra-chave           | extends                  | implements
+Quantas a classe usa    | Só UMA                   | VÁRIAS
+Atributos               | Sim, qualquer tipo       | Só constantes
+                        |                          | (public static final)
+Construtor              | Pode ter                 | Não tem
+Métodos com corpo       | Sim, normais             | Só "default" e "static"
+                        |                          | (Java 8+)
+Métodos abstratos       | Precisa escrever         | Já são abstratos por
+                        | "abstract"               | padrão
+Modificadores           | public, protected,       | Métodos são public
+                        | private                  | por padrão
+Relação                 | "É UM"                   | "CONSEGUE FAZER"
+                        | (Cachorro É UM Animal)   | (Pato CONSEGUE voar)
+
+QUANDO USAR:
+- Precisa PASSAR ATRIBUTOS pras filhas? -> CLASSE ABSTRATA
+- Não precisa, só quer obrigar a ter métodos? -> INTERFACE
+- Classes sem relação nenhuma vão ter a mesma capacidade? -> INTERFACE
+- Precisa de "herança múltipla"? -> INTERFACE (dá pra implementar várias)
+- Dá pra usar as duas juntas: class Pato extends Animal implements Voador
+
+Exercícios (resposta e por quê):
+  a) Veiculo com marca e ano; Carro e Moto  -> ABSTRATA (tem atributos, "é um")
+  b) Imprimivel: Relatorio, Foto, Boleto    -> INTERFACE (capacidade, sem relação)
+  c) Pessoa com nome e cpf; Aluno, Professor -> ABSTRATA (tem atributos, "é um")
+  d) Comparavel: qualquer coisa             -> INTERFACE (capacidade)
+
+
+==================================
+2.2 CLASSE ABSTRATA x CLASSE COMUM
+==================================
+IGUAL: as duas têm atributos, construtor, métodos com corpo e podem
+ser herdadas com extends.
+
+DIFERENÇA:
+  Classe comum    | dá "new"      | não pode ter método abstrato
+  Classe abstrata | NÃO dá "new"  | pode ter método abstrato (obriga a filha)
+
+QUANDO USAR: se a mãe faz sentido existir sozinha (Funcionario existe,
+Gerente é um tipo especial) -> classe comum. Se a mãe é só uma ideia
+(não existe "uma Forma" genérica) -> abstrata.
+
+
+==================================
+2.3 HERANÇA x INTERFACE
+==================================
+IGUAL: as duas criam um "tipo" que várias classes compartilham e as
+duas permitem polimorfismo.
+
+DIFERENÇA:
+  Herança (extends)       | reaproveita CÓDIGO e ATRIBUTOS | só 1 mãe  | "É UM"
+  Interface (implements)  | só obriga a ter MÉTODOS        | várias    | "CONSEGUE FAZER"
+
+QUANDO USAR: herança pra reaproveitar código de um mesmo tipo;
+interface pra definir capacidades e deixar o código flexível.
+
+
+==================================
+2.4 HERANÇA x POLIMORFISMO
+==================================
+NÃO são a mesma coisa, mas andam juntos:
+- HERANÇA é o MECANISMO: a filha recebe o que a mãe tem.
+- POLIMORFISMO é o EFEITO: a mesma chamada faz coisas diferentes.
+- Polimorfismo PRECISA de herança (ou interface) + sobrescrita.
+  Herança sem sobrescrita = só reaproveitamento, sem polimorfismo.
+
+Frase pra prova:
+  Herança = filha REAPROVEITA o que a mãe tem.
+  Polimorfismo = mesma chamada, comportamento diferente pelo objeto real.
+
+
+==================================
+2.5 SOBRESCRITA (override) x SOBRECARGA (overload)
+==================================
+IGUAL: nas duas o método tem o MESMO NOME.
+
+DIFERENÇA:
+                  | SOBRESCRITA (override)     | SOBRECARGA (overload)
+------------------+----------------------------+---------------------------
+Onde              | Mãe e FILHA                | Na MESMA classe
+Parâmetros        | IGUAIS                     | DIFERENTES
+Decidido quando   | EXECUÇÃO                   | COMPILAÇÃO
+Anotação          | @Override                  | nenhuma
+Exemplo           | area() em Circulo/Retangulo| somar(int,int) / somar(double,double)
+
+QUANDO USAR: override pra filha mudar o comportamento da mãe;
+overload pra oferecer o mesmo método com entradas diferentes.
+
+
+==================================
+2.6 FACTORY METHOD x ABSTRACT FACTORY
+==================================
+
+POR QUE SÃO PARECIDOS (o que têm de IGUAL):
+- Os dois são padrões CRIACIONAIS do GoF.
+- Os dois tiram o "new ClasseConcreta()" do código que usa o objeto.
+- Nos dois o método de criação RETORNA A INTERFACE do produto.
+- Os dois usam POLIMORFISMO: o cliente só conhece interfaces e não
+  sabe qual classe concreta veio.
+- Os dois seguem o Aberto/Fechado: pra adicionar um tipo novo, cria
+  classe nova sem mexer no que existe.
+- Abstract Factory é, na prática, "vários Factory Methods juntos na
+  mesma fábrica", um pra cada produto da família.
+
+DIFERENÇAS:
+                  | FACTORY METHOD              | ABSTRACT FACTORY
+------------------+-----------------------------+------------------------------
+O que cria        | UM produto                  | uma FAMÍLIA de produtos
+Métodos criação   | UM (criarTransporte())      | VÁRIOS (1 por produto)
+Como funciona     | Herança: a subclasse        | Composição: você recebe um
+                  | sobrescreve o método        | objeto fábrica e usa ele
+Objetivo          | deixar a subclasse decidir  | garantir que os produtos
+                  | qual classe criar           | combinam entre si
+Exemplos          | Logistica -> Transporte     | CheckoutFactory -> Doc +
+                  | iFabricaForma -> iForma     |   Pagamento + Etiqueta
+                  |                             | DeliveryFactory -> Comida + Bebida
+Adicionar         | tipo novo: +1 produto       | família nova: +1 fábrica e
+                  |   +1 fábrica (fácil)        |   +N produtos (fácil)
+                  |                             | PRODUTO novo: mexe na interface
+                  |                             |   e em TODAS as fábricas (difícil)
+
+QUANDO USAR:
+- Precisa criar UM objeto e o tipo varia -> FACTORY METHOD
+- Precisa criar VÁRIOS objetos que têm que combinar -> ABSTRACT FACTORY
+
+Fórmulas:
+  Factory Method:
+    interface Fabrica { Produto criar(); }                         // UM
+  Abstract Factory:
+    interface Fabrica { ProdutoA criarA(); ProdutoB criarB(); }    // VÁRIOS
+
+
+==================================
+2.7 SIMPLE FACTORY x FACTORY METHOD (pra não confundir)
+==================================
+Simple Factory NÃO é do GoF. É uma classe só com if/switch:
+    if (tipo.equals("circulo")) return new Circulo();
+    else if (tipo.equals("retangulo")) return new Retangulo();
+
+IGUAL: os dois centralizam a criação e tiram o "new" do cliente.
+DIFERENÇA: no Simple Factory, pra cada tipo novo você EDITA o if
+(viola o Aberto/Fechado). No Factory Method você CRIA uma fábrica
+nova e não mexe em nada.
+
+
+==================================
+2.8 INJEÇÃO DE DEPENDÊNCIA x FACTORY
+==================================
+Injeção de dependência (exemplo do Auto): a classe recebe o objeto
+pronto pelo construtor.
+    Auto carro = new Auto(new Combustao());
+
+IGUAL: nos dois a classe depende da INTERFACE, não da concreta.
+DIFERENÇA: na injeção, quem cria o objeto é quem chama (passa pronto).
+Na factory, quem cria é a fábrica.
+Eles se combinam: o Cliente do Checkout RECEBE a fábrica pelo construtor
+(injeção) e a fábrica CRIA os produtos (factory).
+
+
+######################################################################
+PARTE 3 - COMO DECIDIR NA PROVA
+######################################################################
+
+As classes são do mesmo tipo ("É UM") e dividem código/atributos?
+  SIM -> HERANÇA
+         A mãe faz sentido ser instanciada sozinha?
+           SIM -> classe comum
+           NÃO -> CLASSE ABSTRATA
+  NÃO -> é só uma capacidade ("CONSEGUE FAZER")? -> INTERFACE
+
+Precisa esconder QUAL classe concreta é criada?
+  Cria UM produto              -> FACTORY METHOD
+  Cria uma FAMÍLIA que combina -> ABSTRACT FACTORY
+
+Precisa tratar objetos diferentes do mesmo jeito (um for, um método
+que aceita qualquer um)?
+  -> POLIMORFISMO: variável do tipo da mãe/interface + @Override
+
+
+######################################################################
+PARTE 4 - PEGADINHAS
+######################################################################
+
+- Classe abstrata NÃO dá "new", mas PODE ter construtor (a filha chama
+  com super).
+- Interface não tem atributo, só constante (public static final).
+- extends em 1 classe só; implements em várias interfaces.
+- Se a filha não implementa TODOS os métodos abstratos, ela também
+  tem que ser abstract.
+- "Mae x = new Filha();" -> só chama métodos que existem em Mae, mas
+  roda a versão da Filha. Método só da filha precisa de cast.
+- super(...) tem que ser a PRIMEIRA linha do construtor.
+- private não é acessado pela filha; protected é.
+- Método de interface implementado tem que ser public (senão dá erro).
+- Classe abstrata pode ter ZERO métodos abstratos (continua sem "new").
+- Overload é na COMPILAÇÃO; override é na EXECUÇÃO.
+- No factory, o método de criação retorna a INTERFACE (DocumentoFiscal),
+  não a classe concreta (NFE). Se retornar NFE, o cliente fica preso.
+- Fábrica cria e RETORNA o objeto; quem faz a ação é o produto.
+  (Método da fábrica "void" que só imprime NÃO é factory.)
+- O main é "public static void main(String[] args)". Sem static void
+  vira construtor e o programa não roda.
+
+
+######################################################################
+PARTE 5 - PERGUNTAS DE PROVA COM RESPOSTA
+######################################################################
+
+1. O que é polimorfismo, numa frase?
+   A mesma chamada de método faz coisas diferentes dependendo do objeto
+   real guardado na variável.
+
+2. Funcionario f = new Gerente(...); f.calcularSalario() -> qual roda?
+   O do Gerente, porque o Java olha o objeto real na execução.
+
+3. Por que f.getBonus() dá erro?
+   A variável é do tipo Funcionario, que não tem getBonus(). Solução:
+   if (f instanceof Gerente) { ((Gerente) f).getBonus(); }
+
+4. Uma classe pode herdar de duas classes?
+   Não. Só uma (extends). Mas pode implementar várias interfaces.
+
+5. Classe abstrata tem construtor? Interface tem?
+   Abstrata tem (chamado pela filha com super). Interface não tem.
+
+6. O que classe abstrata e interface têm de igual?
+   Nenhuma dá "new", as duas podem ter métodos abstratos e as duas
+   permitem polimorfismo.
+
+7. Pra que serve um factory?
+   Tirar o "new ClasseConcreta()" do código que usa o objeto, pra ele
+   depender só da interface.
+
+8. Factory Method cria quantos produtos? E Abstract Factory?
+   Factory Method: UM. Abstract Factory: uma FAMÍLIA (vários que combinam).
+
+9. Onde está o polimorfismo nos padrões factory?
+   A variável é do tipo da interface (Logistica, CheckoutFactory,
+   Transporte, DocumentoFiscal) e o objeto real varia. A mesma chamada
+   (criarTransporte(), documentoFiscal()) cria coisas diferentes.
+
+10. Como trocar o país inteiro no Checkout?
+    Trocar só a linha: CheckoutFactory f = new AlemanhaFactory();
+    O resto do código não muda.
+
+11. Qual a desvantagem do Abstract Factory?
+    Muitas classes, e adicionar um NOVO TIPO de produto obriga a mexer
+    na interface e em todas as fábricas.
+
+12. Diferença entre override e overload?
+    Override: filha reescreve com os mesmos parâmetros, decidido na
+    execução. Overload: mesmo nome com parâmetros diferentes na mesma
+    classe, decidido na compilação.
